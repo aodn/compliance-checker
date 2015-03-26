@@ -59,3 +59,28 @@ class IMOSCheck(BaseNCCheck):
                     ret_val.append(result)
 
         return ret_val
+
+    def check_project_attribute(self, ds):
+        """
+        Check the global project attribute and ensure it has value
+        'Integrated Marine Observing System (IMOS)'
+        """
+        ret_val = []
+        result_name = ('globalattr', 'project','check_attributes')
+
+        global_attributes = ds.dataset.ncattrs()
+
+        if 'project' not in global_attributes:
+            reasoning = ['Attribute is not present']
+            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+            ret_val.append(result)
+        else:
+            attribute_value = getattr(ds.dataset, "project")
+            if attribute_value != 'Integrated Marine Observing System (IMOS)':
+                reasoning = ['Attribute value is not equal to Integrated Marine Observing System (IMOS)']
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                ret_val.append(result)
+            else:
+                result = Result(BaseCheck.HIGH, True, result_name, None)
+
+        return ret_val
