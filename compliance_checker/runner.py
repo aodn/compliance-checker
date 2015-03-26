@@ -5,6 +5,7 @@ from compliance_checker.cf import CFBaseCheck
 from compliance_checker.ioos import IOOSBaseCheck
 from compliance_checker.suite import CheckSuite
 from compliance_checker.glider_dac import GliderCheck
+from compliance_checker.imos import IMOSCheck
 
 class ComplianceCheckerCheckSuite(CheckSuite):
     """
@@ -12,6 +13,7 @@ class ComplianceCheckerCheckSuite(CheckSuite):
     """
     checkers = {
         'cf'        : CFBaseCheck,
+        'imos'      : IMOSCheck,
         'acdd'      : ACDDBaseCheck,
         'ioos'      : IOOSBaseCheck,
         'gliderdac' : GliderCheck
