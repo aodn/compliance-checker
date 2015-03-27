@@ -26,7 +26,7 @@ class IMOSCheck(BaseNCCheck):
         for name in ds.dataset.ncattrs():
             attribute_value = getattr(ds.dataset, name)
             if isinstance(attribute_value, basestring):
-                result_name = ('globalattr', name,'check_empty_attributes')
+                result_name = ('globalattr', name,'check_attribute_empty')
                 reasoning = None
                 if not attribute_value:
                     #empty global attribute
@@ -49,7 +49,7 @@ class IMOSCheck(BaseNCCheck):
                 attribute_value = getattr(variable, attribute_name)
 
                 if isinstance(attribute_value, basestring):
-                    result_name = ('var', variable_name, attribute_name,'check_empty_attributes')
+                    result_name = ('var', variable_name, attribute_name,'check_attribute_empty')
                     reasoning = None
                     if not attribute_value:
                         #empty variable attribute
@@ -141,3 +141,52 @@ class IMOSCheck(BaseNCCheck):
 
         ret_val.append(result)
         return ret_val
+
+    def _check_attribute_type(self, name, type, ds, result_name, check_priority, reasoning):
+        """
+        Check global data attribute and ensure it has the right type.
+        params:
+            name (str): attribute name
+            type (class): expected type
+            ds (Dataset): netcdf data file
+            result_name: the result name to display
+            check_priority (int): the check priority
+            reasoning (str): reason string for failed check
+
+        return:
+            result (Result): result for the check
+        """
+        result = None
+        global_attributes = ds.dataset.ncattrs()
+
+        if name not in global_attributes:
+            reasoning = ['Attribute is not present']
+            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+        else:
+            attribute_value = getattr(ds.dataset, name)
+            if not isinstance(attribute_value, type):
+                if not reasoning:
+                    reasoning = ['Attribute type is not equal to ' + str(type)]
+                result = Result(check_priority, False, result_name, reasoning)
+            else:
+                result = Result(check_priority, True, result_name, None)
+
+        return result
+
+    def check_author(self, ds):
+        """
+        Check the global author attribute and ensure it is str type.
+        """
+        ret_val = []
+        result_name = ('globalattr', 'author', 'check_attribute_type')
+        reasoning = ['Attribute type is not str']
+        result = self._check_attribute_type("author",
+                                             basestring,
+                                             ds,
+                                             result_name,
+                                             BaseCheck.HIGH,
+                                             reasoning)
+
+        ret_val.append(result)
+        return ret_val
+    
