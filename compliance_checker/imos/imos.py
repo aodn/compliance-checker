@@ -26,7 +26,7 @@ class IMOSCheck(BaseNCCheck):
         for name in ds.dataset.ncattrs():
             attribute_value = getattr(ds.dataset, name)
             if isinstance(attribute_value, basestring):
-                result_name = ('globalattr', name,'check_attributes')
+                result_name = ('globalattr', name,'check_empty_attributes')
                 reasoning = None
                 if not attribute_value:
                     #empty global attribute
@@ -49,7 +49,7 @@ class IMOSCheck(BaseNCCheck):
                 attribute_value = getattr(variable, attribute_name)
 
                 if isinstance(attribute_value, basestring):
-                    result_name = ('var', variable_name, attribute_name,'check_attributes')
+                    result_name = ('var', variable_name, attribute_name,'check_empty_attributes')
                     reasoning = None
                     if not attribute_value:
                         #empty variable attribute
@@ -68,19 +68,60 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
         result_name = ('globalattr', 'project','check_attributes')
 
+        result = self._check_attribute_equal("project",
+                                             "Integrated Marine Observing System (IMOS)",
+                                             ds,
+                                             result_name,
+                                             BaseCheck.HIGH)
+
+        ret_val.append(result)
+        return ret_val
+
+    def _check_attribute_equal(self, name, value, ds, result_name, check_priority, reasoning=None):
+        """
+        Help method to check whether an attribute equals to value. It also returns
+        a Result object based on the whether the check is successful.
+
+        params:
+            name (str): attribute name
+            value (str): expected value
+            ds (Dataset): netcdf data file
+            result_name: the result name to display
+            check_priority (int): the check priority
+            reasoning (str): reason string for failed check
+
+        return:
+            result (Result): result for the check
+        """
+        result = None
         global_attributes = ds.dataset.ncattrs()
 
-        if 'project' not in global_attributes:
+        if name not in global_attributes:
             reasoning = ['Attribute is not present']
             result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-            ret_val.append(result)
         else:
-            attribute_value = getattr(ds.dataset, "project")
-            if attribute_value != 'Integrated Marine Observing System (IMOS)':
-                reasoning = ['Attribute value is not equal to Integrated Marine Observing System (IMOS)']
-                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-                ret_val.append(result)
+            attribute_value = getattr(ds.dataset, name)
+            if attribute_value != value:
+                reasoning = ['Attribute value is not equal to ' + value]
+                result = Result(check_priority, False, result_name, reasoning)
             else:
-                result = Result(BaseCheck.HIGH, True, result_name, None)
+                result = Result(check_priority, True, result_name, None)
+
+        return result
+
+    def check_naming_authority(self, ds):
+        """
+        Check the global naming authority attribute and ensure it has value 'IMOS'
+        """
+        ret_val = []
+        result_name = ('globalattr', 'naming_authority','check_attributes')
+
+        result = self._check_attribute_equal("naming_authority",
+                                             "IMOS",
+                                             ds,
+                                             result_name,
+                                             BaseCheck.HIGH)
+
+        ret_val.append(result)
 
         return ret_val
