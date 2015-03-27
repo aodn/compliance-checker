@@ -125,3 +125,19 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
 
         return ret_val
+
+    def check_data_centre(self, ds):
+        """
+        Check the global data centre attribute and ensure it has value
+        'eMarine Information Infrastructure (eMII)'
+        """
+        ret_val = []
+        result_name = ('globalattr', 'data_centre', 'check_attributes')
+        result = self._check_attribute_equal("data_centre",
+                                             "eMarine Information Infrastructure (eMII)",
+                                             ds,
+                                             result_name,
+                                             BaseCheck.HIGH)
+
+        ret_val.append(result)
+        return ret_val
