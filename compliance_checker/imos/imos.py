@@ -77,7 +77,7 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
         return ret_val
 
-    def _check_attribute_equal(self, name, value, ds, result_name, check_priority, reasoning=None):
+    def _check_attribute_equal(self, name, value, ds, result_name, check_priority, reasoning=None, skip_check_presnet=False):
         """
         Help method to check whether an attribute equals to value. It also returns
         a Result object based on the whether the check is successful.
@@ -89,7 +89,8 @@ class IMOSCheck(BaseNCCheck):
             result_name: the result name to display
             check_priority (int): the check priority
             reasoning (str): reason string for failed check
-
+            skip_check_presnet (boolean): flag to allow check only performed
+                                         if attribute is present
         return:
             result (Result): result for the check
         """
@@ -97,8 +98,9 @@ class IMOSCheck(BaseNCCheck):
         global_attributes = ds.dataset.ncattrs()
 
         if name not in global_attributes:
-            reasoning = ['Attribute is not present']
-            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+            if not skip_check_presnet:
+                reasoning = ['Attribute is not present']
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
         else:
             attribute_value = getattr(ds.dataset, name)
             if attribute_value != value:
@@ -142,7 +144,7 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
         return ret_val
 
-    def _check_attribute_type(self, name, type, ds, result_name, check_priority, reasoning):
+    def _check_attribute_type(self, name, type, ds, result_name, check_priority, reasoning=None, skip_check_presnet=False):
         """
         Check global data attribute and ensure it has the right type.
         params:
@@ -152,7 +154,8 @@ class IMOSCheck(BaseNCCheck):
             result_name: the result name to display
             check_priority (int): the check priority
             reasoning (str): reason string for failed check
-
+            skip_check_presnet (boolean): flag to allow check only performed
+                                         if attribute is present
         return:
             result (Result): result for the check
         """
@@ -160,8 +163,9 @@ class IMOSCheck(BaseNCCheck):
         global_attributes = ds.dataset.ncattrs()
 
         if name not in global_attributes:
-            reasoning = ['Attribute is not present']
-            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+            if not skip_check_presnet:
+                reasoning = ['Attribute is not present']
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
         else:
             attribute_value = getattr(ds.dataset, name)
             if not isinstance(attribute_value, type):
@@ -185,8 +189,10 @@ class IMOSCheck(BaseNCCheck):
                                              ds,
                                              result_name,
                                              BaseCheck.HIGH,
-                                             reasoning)
+                                             reasoning,
+                                             False)
+        if result:
+            ret_val.append(result)
 
-        ret_val.append(result)
         return ret_val
     
