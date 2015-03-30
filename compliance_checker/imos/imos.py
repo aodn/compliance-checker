@@ -4,6 +4,9 @@ Compliance Test Suite for the Integrated Marine Observing System
 http://www.imos.org.au/
 '''
 
+from numbers import Number
+from numpy import amax
+from numpy import amin
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
 from netCDF4 import Dataset
  
@@ -30,7 +33,7 @@ class IMOSCheck(BaseNCCheck):
                 reasoning = None
                 if not attribute_value:
                     #empty global attribute
-                    reasoning = ['Attribute value is empty']
+                    reasoning = ["Attribute value is empty"]
 
                 result = Result(BaseCheck.HIGH, reasoning == None, result_name, reasoning)
                 ret_val.append(result)
@@ -53,7 +56,7 @@ class IMOSCheck(BaseNCCheck):
                     reasoning = None
                     if not attribute_value:
                         #empty variable attribute
-                        reasoning = ['Attribute value is empty']
+                        reasoning = ["Attribute value is empty"]
 
                     result = Result(BaseCheck.HIGH, reasoning == None, result_name, reasoning)
                     ret_val.append(result)
@@ -99,17 +102,21 @@ class IMOSCheck(BaseNCCheck):
 
         if name not in global_attributes:
             if not skip_check_presnet:
-                reasoning = ['Attribute is not present']
+                if not reasoning:
+                    reasoning = ["Attribute is not present"]
+
                 result = Result(BaseCheck.HIGH, False, result_name, reasoning)
         else:
             attribute_value = getattr(ds.dataset, name)
             if attribute_value != value:
-                reasoning = ['Attribute value is not equal to ' + value]
+                if not reasoning:
+                    reasoning = ["Attribute value is not equal to " + value]
+
                 result = Result(check_priority, False, result_name, reasoning)
             else:
                 result = Result(check_priority, True, result_name, None)
 
-        return result
+        return result        
 
     def check_naming_authority(self, ds):
         """
@@ -118,7 +125,7 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
         result_name = ('globalattr', 'naming_authority','check_attributes')
 
-        result = self._check_attribute_equal("naming_authority",
+        result = self._check_attribute_equal('naming_authority',
                                              "IMOS",
                                              ds,
                                              result_name,
@@ -135,7 +142,7 @@ class IMOSCheck(BaseNCCheck):
         """
         ret_val = []
         result_name = ('globalattr', 'data_centre', 'check_attributes')
-        result = self._check_attribute_equal("data_centre",
+        result = self._check_attribute_equal('data_centre',
                                              "eMarine Information Infrastructure (eMII)",
                                              ds,
                                              result_name,
@@ -164,13 +171,13 @@ class IMOSCheck(BaseNCCheck):
 
         if name not in global_attributes:
             if not skip_check_presnet:
-                reasoning = ['Attribute is not present']
+                reasoning = ["Attribute is not present"]
                 result = Result(BaseCheck.HIGH, False, result_name, reasoning)
         else:
             attribute_value = getattr(ds.dataset, name)
             if not isinstance(attribute_value, type):
                 if not reasoning:
-                    reasoning = ['Attribute type is not equal to ' + str(type)]
+                    reasoning = ["Attribute type is not equal to " + str(type)]
                 result = Result(check_priority, False, result_name, reasoning)
             else:
                 result = Result(check_priority, True, result_name, None)
@@ -183,7 +190,7 @@ class IMOSCheck(BaseNCCheck):
         """
         ret_val = []
         result_name = ('globalattr', 'author', 'check_attribute_type')
-        reasoning = ['Attribute type is not str']
+        reasoning = ["Attribute type is not str"]
         result = self._check_attribute_type("author",
                                              basestring,
                                              ds,
@@ -195,4 +202,54 @@ class IMOSCheck(BaseNCCheck):
             ret_val.append(result)
 
         return ret_val
-    
+
+    def check_geospatial_lat_min_max(self, ds):
+        """
+        Check the global geospatial_lat_min and geospatial_lat_max attributes
+        match range in data and numeric type
+        """
+
+        ret_val = []
+        reasoning = ["Attribute type is not numeric"]
+        result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
+        result = self._check_attribute_type("geospatial_lat_min",
+                                            Number,
+                                            ds,
+                                            result_name,
+                                            BaseCheck.HIGH, reasoning)
+
+        if result:
+            ret_val.append(result)
+
+        # Check to ensure attribute is present
+        latitude_names = ['latitude', 'LATITUDE']
+        latitude_var = None
+
+        if result.value:
+            geospatial_lat_min = getattr(ds.dataset, "geospatial_lat_min", None)
+
+            for latitude_name in latitude_names:
+                latitude_var = ds.dataset.variables.get(latitude_name, None)
+
+                if latitude_var != None:
+                    break
+
+            if latitude_var != None:
+                passed = True
+                result_name = ('globalattr', 'geospatial_lat_min','check_minimum_value')
+                reasoning = None
+                min_value = amin(latitude_var.__array__())
+
+                if min_value != float(geospatial_lat_min):
+                    reasoning = ["Minimum value is not same as the attribute value"]
+                    passed = False
+
+                result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+                ret_val.append(result)
+            else:
+                result_name = ('var', latitude_var.name,'check_variable_present')
+                reasoning = ['Variable is not present']
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                ret_val.append(result)
+
+        return ret_val
