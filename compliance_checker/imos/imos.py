@@ -12,6 +12,15 @@ from netCDF4 import Dataset
  
 class IMOSCheck(BaseNCCheck):
 
+    CHECK_VARIABLE = 1
+    CHECK_GLOBAL_ATTRIBUTE = 0
+    CHECK_VARIABLE_ATTRIBUTE = 3
+    
+    OPERATOR_EQUAL = 1
+    OPERATOR_MIN = 2
+    OPERATOR_MAX = 3
+    OPERATOR_WITHIN = 4
+
     @classmethod
     def beliefs(cls):
         return {}
@@ -71,24 +80,84 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
         result_name = ('globalattr', 'project','check_attributes')
 
-        result = self._check_attribute_equal("project",
-                                             "Integrated Marine Observing System (IMOS)",
-                                             ds,
-                                             result_name,
-                                             BaseCheck.HIGH)
+        result = self._check_value(("project",),
+                                    "Integrated Marine Observing System (IMOS)",
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,                                    
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
 
         ret_val.append(result)
         return ret_val
 
-    def _check_attribute_equal(self, name, value, ds, result_name, check_priority, reasoning=None, skip_check_presnet=False):
+    def _check_present(self, name, ds, check_type, result_name, check_priority, reasoning=None):
         """
-        Help method to check whether an attribute equals to value. It also returns
-        a Result object based on the whether the check is successful.
+        Help method to check whether a variable, variable attribute
+        or a global attribute presents.
 
         params:
-            name (str): attribute name
-            value (str): expected value
+            name (tuple): variable name and attribute name.
+                          For global attribute, only attribute name present.
             ds (Dataset): netcdf data file
+            check_type (int): CHECK_VARIABLE, CHECK_GLOBAL_ATTRIBUTE,
+                              CHECK_VARIABLE_ATTRIBUTE
+            result_name: the result name to display
+            check_priority (int): the check priority
+            reasoning (str): reason string for failed check
+        return:
+            result (Result): result for the check
+        """
+
+        passed = True
+
+        if check_type == IMOSCheck.CHECK_GLOBAL_ATTRIBUTE:
+            if not result_name:
+                result_name = ('globalattr', name[0],'check_attribute_present')
+            if name[0] not in ds.dataset.ncattrs():
+                if not reasoning:
+                    reasoning = ["Attribute is not present"]
+                    passed = False
+
+        if check_type == IMOSCheck.CHECK_VARIABLE or\
+            check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
+            if not result_name:
+                result_name = ('var', name[0],'check_variable_present')
+           
+            variable = ds.dataset.variables.get(name[0], None)
+            
+            if variable == None:
+                if not reasoning:
+                    reasoning = ['Variable is not present']
+                passed = False
+
+            else:
+                if check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
+                    if not result_name:
+                        result_name = ('var', name[0], name[1], 'check_variable_attribute_present')
+                    if name[1] not in variable.ncattrs():
+                        if not reasoning:
+                            reasoning = ["Variable attribute is not present"]
+                        passed = False
+
+        result = Result(check_priority, passed, result_name, reasoning)
+
+        return result
+
+    def _check_value(self, name, value, operator, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
+        """
+        Help method to compare attribute to value or a variable
+        to a value. It also returns a Result object based on the whether
+        the check is successful.
+
+        params:
+            name (tuple): variable name and attribute name.
+                          For global attribute, only attribute name present.
+            value (str): expected value
+            operator (int): OPERATOR_EQUAL, OPERATOR_MAX, OPERATOR_MIN
+            ds (Dataset): netcdf data file
+            check_type (int): CHECK_VARIABLE, CHECK_GLOBAL_ATTRIBUTE,
+                              CHECK_VARIABLE_ATTRIBUTE
             result_name: the result name to display
             check_priority (int): the check priority
             reasoning (str): reason string for failed check
@@ -97,26 +166,44 @@ class IMOSCheck(BaseNCCheck):
         return:
             result (Result): result for the check
         """
-        result = None
-        global_attributes = ds.dataset.ncattrs()
+        result = self._check_present(name, ds, check_type,
+                            result_name,
+                            BaseCheck.HIGH)
 
-        if name not in global_attributes:
-            if not skip_check_presnet:
-                if not reasoning:
-                    reasoning = ["Attribute is not present"]
+        if result.value:
+            result = None
+            retrieved_value = None
 
-                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-        else:
-            attribute_value = getattr(ds.dataset, name)
-            if attribute_value != value:
-                if not reasoning:
-                    reasoning = ["Attribute value is not equal to " + value]
+            if check_type == IMOSCheck.CHECK_GLOBAL_ATTRIBUTE:
+                retrieved_value = getattr(ds.dataset, name[0])
 
-                result = Result(check_priority, False, result_name, reasoning)
-            else:
+            if check_type == IMOSCheck.CHECK_VARIABLE:
+                variable = ds.dataset.variables.get(name[0], None)
+
+            if check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
+                pass
+
+            if operator == IMOSCheck.OPERATOR_EQUAL:
+                if retrieved_value != value:
+                    if not reasoning:
+                        reasoning = ["Attribute value is not equal to " + value]
+
+                    result = Result(check_priority, False, result_name, reasoning)
+
+            if operator == IMOSCheck.OPERATOR_MIN:
+                min_value = amin(variable.__array__())
+                passed = True
+                if min_value != float(value):
+                    passed = False
+                    if not reasoning:
+                        reasoning = ["Minimum value is not same as the attribute value"]
+
+                result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+
+            if not result:
                 result = Result(check_priority, True, result_name, None)
 
-        return result        
+        return result
 
     def check_naming_authority(self, ds):
         """
@@ -125,11 +212,13 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
         result_name = ('globalattr', 'naming_authority','check_attributes')
 
-        result = self._check_attribute_equal('naming_authority',
-                                             "IMOS",
-                                             ds,
-                                             result_name,
-                                             BaseCheck.HIGH)
+        result = self._check_value(('naming_authority',),
+                                    "IMOS",
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
 
         ret_val.append(result)
 
@@ -142,11 +231,13 @@ class IMOSCheck(BaseNCCheck):
         """
         ret_val = []
         result_name = ('globalattr', 'data_centre', 'check_attributes')
-        result = self._check_attribute_equal('data_centre',
-                                             "eMarine Information Infrastructure (eMII)",
-                                             ds,
-                                             result_name,
-                                             BaseCheck.HIGH)
+        result = self._check_value(('data_centre',),
+                                    "eMarine Information Infrastructure (eMII)",
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,                                    
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
 
         ret_val.append(result)
         return ret_val
@@ -166,21 +257,23 @@ class IMOSCheck(BaseNCCheck):
         return:
             result (Result): result for the check
         """
-        result = None
-        global_attributes = ds.dataset.ncattrs()
+        result = self._check_present((name,), ds, IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                            result_name,
+                            BaseCheck.HIGH)
 
-        if name not in global_attributes:
-            if not skip_check_presnet:
-                reasoning = ["Attribute is not present"]
-                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-        else:
+        if result.value:
             attribute_value = getattr(ds.dataset, name)
+
             if not isinstance(attribute_value, type):
+                print "called"
                 if not reasoning:
                     reasoning = ["Attribute type is not equal to " + str(type)]
                 result = Result(check_priority, False, result_name, reasoning)
             else:
                 result = Result(check_priority, True, result_name, None)
+        else:
+            if skip_check_presnet:
+                result = None
 
         return result
 
@@ -221,35 +314,16 @@ class IMOSCheck(BaseNCCheck):
         if result:
             ret_val.append(result)
 
-        # Check to ensure attribute is present
-        latitude_names = ['latitude', 'LATITUDE']
-        latitude_var = None
-
         if result.value:
             geospatial_lat_min = getattr(ds.dataset, "geospatial_lat_min", None)
-
-            for latitude_name in latitude_names:
-                latitude_var = ds.dataset.variables.get(latitude_name, None)
-
-                if latitude_var != None:
-                    break
-
-            if latitude_var != None:
-                passed = True
-                result_name = ('globalattr', 'geospatial_lat_min','check_minimum_value')
-                reasoning = None
-                min_value = amin(latitude_var.__array__())
-
-                if min_value != float(geospatial_lat_min):
-                    reasoning = ["Minimum value is not same as the attribute value"]
-                    passed = False
-
-                result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
-                ret_val.append(result)
-            else:
-                result_name = ('var', latitude_var.name,'check_variable_present')
-                reasoning = ['Variable is not present']
-                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-                ret_val.append(result)
-
+            result_name = ('globalattr', 'geospatial_lat_min','check_minimum_value')
+            result = self._check_value(('LATITUDE',),
+                                       geospatial_lat_min,
+                                       IMOSCheck.OPERATOR_MIN,
+                                       ds,
+                                       IMOSCheck.CHECK_VARIABLE,
+                                       result_name,
+                                       BaseCheck.HIGH)
+            ret_val.append(result)
         return ret_val
+
