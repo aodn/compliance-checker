@@ -8,7 +8,8 @@ from numbers import Number
 from numpy import amax
 from numpy import amin
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
- 
+import datetime
+  
 class IMOSCheck(BaseNCCheck):
 
     CHECK_VARIABLE = 1
@@ -19,6 +20,7 @@ class IMOSCheck(BaseNCCheck):
     OPERATOR_MIN = 2
     OPERATOR_MAX = 3
     OPERATOR_WITHIN = 4
+    OPERATOR_DATE_FORMAT = 5
 
     @classmethod
     def beliefs(cls):
@@ -122,9 +124,9 @@ class IMOSCheck(BaseNCCheck):
             check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
             if not result_name:
                 result_name = ('var', name[0],'check_variable_present')
-           
+
             variable = ds.dataset.variables.get(name[0], None)
-            
+
             if variable == None:
                 if not reasoning:
                     reasoning = ['Variable is not present']
@@ -203,6 +205,14 @@ class IMOSCheck(BaseNCCheck):
                     passed = False
                     if not reasoning:
                         reasoning = ["Maximum value is not same as the attribute value"]
+
+            if operator == IMOSCheck.OPERATOR_DATE_FORMAT:
+                try:
+                    datetime.datetime.strptime(retrieved_value, value)
+                except ValueError:
+                    passed = False
+                    if not reasoning:
+                        reasoning = ["Datetime format is not correct"]
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
 
@@ -352,3 +362,10 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
+    def check_time_coverage(self):
+        """
+        Check the global attributes time_coverage_start/time_coverage_end whether
+        match format 'YYYY-MM-DDThh:mm:ssZ'
+        """
+        "%Y-%m-%dT%H-%M-%SZ"
+        pass
