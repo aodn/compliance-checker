@@ -215,7 +215,11 @@ class IMOSCheck(BaseNCCheck):
                         reasoning = ["Datetime format is not correct"]
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
-
+        
+        else:
+            if skip_check_presnet:
+                result = None
+        
         return result
 
     def check_naming_authority(self, ds):
@@ -362,10 +366,21 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
-    def check_time_coverage(self):
+    def check_time_coverage(self, ds):
         """
         Check the global attributes time_coverage_start/time_coverage_end whether
         match format 'YYYY-MM-DDThh:mm:ssZ'
         """
-        "%Y-%m-%dT%H-%M-%SZ"
-        pass
+        ret_val = []
+
+        result_name = ('globalattr', 'time_coverage_start','check_date_format')
+        result = self._check_value(('time_coverage_start',),
+                                    '%Y-%m-%dT%H:%M:%SZ',
+                                    IMOSCheck.OPERATOR_DATE_FORMAT,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+        ret_val.append(result)
+
+        return ret_val
