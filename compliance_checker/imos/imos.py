@@ -8,7 +8,6 @@ from numbers import Number
 from numpy import amax
 from numpy import amin
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
-from netCDF4 import Dataset
  
 class IMOSCheck(BaseNCCheck):
 
@@ -173,6 +172,7 @@ class IMOSCheck(BaseNCCheck):
         if result.value:
             result = None
             retrieved_value = None
+            passed = True
 
             if check_type == IMOSCheck.CHECK_GLOBAL_ATTRIBUTE:
                 retrieved_value = getattr(ds.dataset, name[0])
@@ -187,21 +187,24 @@ class IMOSCheck(BaseNCCheck):
                 if retrieved_value != value:
                     if not reasoning:
                         reasoning = ["Attribute value is not equal to " + value]
-
-                    result = Result(check_priority, False, result_name, reasoning)
+                        passed = False
 
             if operator == IMOSCheck.OPERATOR_MIN:
                 min_value = amin(variable.__array__())
-                passed = True
+
                 if min_value != float(value):
                     passed = False
                     if not reasoning:
                         reasoning = ["Minimum value is not same as the attribute value"]
 
-                result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+            if operator == IMOSCheck.OPERATOR_MAX:
+                max_value = amax(variable.__array__())
+                if max_value != float(value):
+                    passed = False
+                    if not reasoning:
+                        reasoning = ["Maximum value is not same as the attribute value"]
 
-            if not result:
-                result = Result(check_priority, True, result_name, None)
+            result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
 
         return result
 
@@ -234,7 +237,7 @@ class IMOSCheck(BaseNCCheck):
         result = self._check_value(('data_centre',),
                                     "eMarine Information Infrastructure (eMII)",
                                     IMOSCheck.OPERATOR_EQUAL,
-                                    ds,                                    
+                                    ds,                                
                                     IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                     result_name,
                                     BaseCheck.HIGH)
@@ -301,15 +304,14 @@ class IMOSCheck(BaseNCCheck):
         Check the global geospatial_lat_min and geospatial_lat_max attributes
         match range in data and numeric type
         """
-
         ret_val = []
-        reasoning = ["Attribute type is not numeric"]
         result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
         result = self._check_attribute_type("geospatial_lat_min",
                                             Number,
                                             ds,
                                             result_name,
-                                            BaseCheck.HIGH, reasoning)
+                                            BaseCheck.HIGH,
+                                            ["Attribute type is not numeric"])
 
         if result:
             ret_val.append(result)
@@ -325,5 +327,28 @@ class IMOSCheck(BaseNCCheck):
                                        result_name,
                                        BaseCheck.HIGH)
             ret_val.append(result)
+
+        result_name = ('globalattr', 'geospatial_lat_max', 'check_attribute_type')
+        result2 = self._check_attribute_type("geospatial_lat_max",
+                                            Number,
+                                            ds,
+                                            result_name,
+                                            BaseCheck.HIGH,
+                                            ["Attribute type is not numeric"])
+        if result2:
+            ret_val.append(result2)
+
+        if result2.value:
+            geospatial_lat_max = getattr(ds.dataset, "geospatial_lat_max", None)
+            result_name = ('globalattr', 'geospatial_lat_max','check_maximum_value')
+            result = self._check_value(('LONGITUDE',),
+                                       geospatial_lat_max,
+                                       IMOSCheck.OPERATOR_MAX,
+                                       ds,
+                                       IMOSCheck.CHECK_VARIABLE,
+                                       result_name,
+                                       BaseCheck.HIGH)
+            ret_val.append(result)
+
         return ret_val
 
