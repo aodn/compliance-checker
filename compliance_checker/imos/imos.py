@@ -23,6 +23,7 @@ class IMOSCheck(BaseNCCheck):
     OPERATOR_MAX = 3
     OPERATOR_WITHIN = 4
     OPERATOR_DATE_FORMAT = 5
+    OPERATOR_SUB_STRING = 6
 
     @classmethod
     def beliefs(cls):
@@ -215,6 +216,12 @@ class IMOSCheck(BaseNCCheck):
                     passed = False
                     if not reasoning:
                         reasoning = ["Datetime format is not correct"]
+
+            if operator == IMOSCheck.OPERATOR_SUB_STRING:
+                if value not in retrieved_value:
+                    passed = False
+                    if not reasoning:
+                        reasoning = ["Required substring is not contained"]
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
         
@@ -481,3 +488,23 @@ class IMOSCheck(BaseNCCheck):
 
     def check_citation(self, ds):
         return self._check_str_type(ds, 'citation')
+
+    def check_acknowledgement(self, ds):
+        """
+        Check the global naming authority attribute and ensure it has value 'IMOS'
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'acknowledgement','check_attributes')
+        value = "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy (NCRIS) and the Super Science Initiative (SSI)"
+        ret_val = []
+        result = self._check_value(('acknowledgement',),
+                                    value,
+                                    IMOSCheck.OPERATOR_SUB_STRING,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+        ret_val.append(result)
+
+        return ret_val
