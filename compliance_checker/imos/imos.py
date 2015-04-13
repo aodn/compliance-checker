@@ -475,3 +475,6 @@ class IMOSCheck(BaseNCCheck):
         Check the global data_centre_email and ensure it has value 'info@emii.org'
         """
         return self._check_global_value_equal(ds,'data_centre_email', 'info@emii.org')
+
+    def check_principal_investigator(self, ds):
+        return self._check_str_type(ds, 'principal_investigator')
