@@ -386,3 +386,24 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
 
         return ret_val
+
+    def check_title(self, ds):
+        """
+        Check the global attributes title has string type
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'title','check_atttribute_type')
+        reasoning = ["Attribute type is not str"]
+
+        result = self._check_attribute_type("title",
+                                             basestring,
+                                             ds,
+                                             result_name,
+                                             BaseCheck.HIGH,
+                                             reasoning,
+                                             False)
+
+        ret_val.append(result)
+
+        return ret_val
