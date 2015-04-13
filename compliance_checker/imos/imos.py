@@ -478,3 +478,6 @@ class IMOSCheck(BaseNCCheck):
 
     def check_principal_investigator(self, ds):
         return self._check_str_type(ds, 'principal_investigator')
+
+    def check_citation(self, ds):
+        return self._check_str_type(ds, 'citation')
