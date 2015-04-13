@@ -300,20 +300,7 @@ class IMOSCheck(BaseNCCheck):
         """
         Check the global author attribute and ensure it is str type.
         """
-        ret_val = []
-        result_name = ('globalattr', 'author', 'check_attribute_type')
-        reasoning = ["Attribute type is not str"]
-        result = self._check_attribute_type("author",
-                                             basestring,
-                                             ds,
-                                             result_name,
-                                             BaseCheck.HIGH,
-                                             reasoning,
-                                             False)
-        if result:
-            ret_val.append(result)
-
-        return ret_val
+        return self._check_str_type(ds, "author")
 
     def check_geospatial_lat_min_max(self, ds):
         """
@@ -391,22 +378,7 @@ class IMOSCheck(BaseNCCheck):
         """
         Check the global attributes title has string type
         """
-        ret_val = []
-
-        result_name = ('globalattr', 'title','check_atttribute_type')
-        reasoning = ["Attribute type is not str"]
-
-        result = self._check_attribute_type("title",
-                                             basestring,
-                                             ds,
-                                             result_name,
-                                             BaseCheck.HIGH,
-                                             reasoning,
-                                             False)
-
-        ret_val.append(result)
-
-        return ret_val
+        return self._check_str_type(ds, "title")
 
     def check_date_created(self, ds):
         """
@@ -426,3 +398,36 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
 
         return ret_val
+
+
+    def _check_str_type(self, ds, name):
+        """
+        Check the global attribute has string type
+
+        params:
+            name (str): attribute name
+        return:
+            result (Result): result for the check
+        """
+        ret_val = []
+
+        result_name = ('globalattr', name, 'check_atttribute_type')
+        reasoning = ["Attribute type is not string"]
+
+        result = self._check_attribute_type(name,
+                                             basestring,
+                                             ds,
+                                             result_name,
+                                             BaseCheck.HIGH,
+                                             reasoning,
+                                             False)
+
+        ret_val.append(result)
+
+        return ret_val
+
+    def check_abstract(self, ds):
+        """
+        Check the global attributes abstract has string type
+        """
+        return self._check_str_type(ds, "abstract")
