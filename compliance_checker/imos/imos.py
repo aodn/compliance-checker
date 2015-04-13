@@ -407,3 +407,22 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
 
         return ret_val
+
+    def check_date_created(self, ds):
+        """
+        Check the global attributes date_created whether
+        match format 'YYYY-MM-DDThh:mm:ssZ'
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'date_created','check_date_format')
+        result = self._check_value(('date_created',),
+                                    '%Y-%m-%dT%H:%M:%SZ',
+                                    IMOSCheck.OPERATOR_DATE_FORMAT,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+        ret_val.append(result)
+
+        return ret_val
