@@ -419,7 +419,7 @@ class IMOSCheck(BaseNCCheck):
         params:
             name (str): attribute name
         return:
-            result (Result): result for the check
+            result (list): a list of Result objects
         """
         ret_val = []
 
@@ -444,3 +444,34 @@ class IMOSCheck(BaseNCCheck):
         """
         return self._check_str_type(ds, "abstract")
     
+    
+    def _check_global_value_equal(self, ds, name, value):
+        """
+        Check global attribute to has the required value.
+        
+        params:
+            name (str): attribute name
+        return:
+            result (list): a list of Result objects
+            
+        """
+        ret_val = []
+        result_name = ('globalattr', name,'check_attributes')
+
+        result = self._check_value((name,),
+                                    value,
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+
+        ret_val.append(result)
+
+        return ret_val
+
+    def check_data_centre_email(self, ds):
+        """
+        Check the global data_centre_email and ensure it has value 'info@emii.org'
+        """
+        return self._check_global_value_equal(ds,'data_centre_email', 'info@emii.org')
