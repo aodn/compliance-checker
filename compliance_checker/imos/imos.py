@@ -372,6 +372,18 @@ class IMOSCheck(BaseNCCheck):
                                     BaseCheck.HIGH)
         ret_val.append(result)
 
+
+        result_name = ('globalattr', 'time_coverage_end','check_date_format')
+        result = self._check_value(('time_coverage_end',),
+                                    '%Y-%m-%dT%H:%M:%SZ',
+                                    IMOSCheck.OPERATOR_DATE_FORMAT,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+
+        ret_val.append(result)
+
         return ret_val
 
     def check_title(self, ds):
@@ -431,3 +443,4 @@ class IMOSCheck(BaseNCCheck):
         Check the global attributes abstract has string type
         """
         return self._check_str_type(ds, "abstract")
+    
