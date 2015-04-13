@@ -11,7 +11,9 @@ from compliance_checker.base import BaseCheck, BaseNCCheck, Result
 import datetime
   
 class IMOSCheck(BaseNCCheck):
-
+    register_checker = True
+    name = 'imos'
+    
     CHECK_VARIABLE = 1
     CHECK_GLOBAL_ATTRIBUTE = 0
     CHECK_VARIABLE_ATTRIBUTE = 3
