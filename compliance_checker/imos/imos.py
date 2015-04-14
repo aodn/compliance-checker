@@ -578,6 +578,66 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
+    def check_geospatial_vertical_min_max(self, ds):
+        """
+        Check the global geospatial_vertical_min and 
+        geospatial_vertical_max attributes match range in data and numeric type
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'geospatial_vertical_min', 'check_attribute_type')
+        result = self._check_present(('VERTICAL',), ds, IMOSCheck.CHECK_VARIABLE,
+                                     result_name,
+                                     BaseCheck.HIGH)
+
+        if result.value:
+            result_name = ('globalattr', 'geospatial_vertical_min', 'check_attribute_type')
+            result = self._check_attribute_type("geospatial_vertical_min",
+                                                Number,
+                                                ds,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                ["Attribute type is not numeric"])
+
+            if result:
+                ret_val.append(result)
+
+            if result.value:
+                geospatial_lat_min = getattr(ds.dataset, "geospatial_vertical_min", None)
+                result_name = ('globalattr', 'geospatial_vertical_min','check_minimum_value')
+                result = self._check_value(('VERTICAL',),
+                                           geospatial_lat_min,
+                                           IMOSCheck.OPERATOR_MIN,
+                                           ds,
+                                           IMOSCheck.CHECK_VARIABLE,
+                                           result_name,
+                                           BaseCheck.HIGH)
+                ret_val.append(result)
+
+            result_name = ('globalattr', 'geospatial_vertical_max', 'check_attribute_type')
+            result2 = self._check_attribute_type("geospatial_vertical_max",
+                                                Number,
+                                                ds,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                ["Attribute type is not numeric"])
+            if result2:
+                ret_val.append(result2)
+
+            if result2.value:
+                geospatial_lat_max = getattr(ds.dataset, "geospatial_vertical_max", None)
+                result_name = ('globalattr', 'geospatial_vertical_max','check_maximum_value')
+                result = self._check_value(('VERTICAL',),
+                                           geospatial_lat_max,
+                                           IMOSCheck.OPERATOR_MAX,
+                                           ds,
+                                           IMOSCheck.CHECK_VARIABLE,
+                                           result_name,
+                                           BaseCheck.HIGH)
+                ret_val.append(result)
+
+        return ret_val
+
     def check_time_coverage(self, ds):
         """
         Check the global attributes time_coverage_start/time_coverage_end whether
