@@ -224,11 +224,11 @@ class IMOSCheck(BaseNCCheck):
                         reasoning = ["Required substring is not contained"]
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
-        
+
         else:
             if skip_check_presnet:
                 result = None
-        
+
         return result
 
     def check_naming_authority(self, ds):
@@ -268,13 +268,15 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
         return ret_val
 
-    def _check_attribute_type(self, name, type, ds, result_name, check_priority, reasoning=None, skip_check_presnet=False):
+    def _check_attribute_type(self, name, type, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
         """
         Check global data attribute and ensure it has the right type.
         params:
-            name (str): attribute name
+            name (tuple): attribute name
             type (class): expected type
             ds (Dataset): netcdf data file
+            check_type (int): CHECK_VARIABLE, CHECK_GLOBAL_ATTRIBUTE,
+                              CHECK_VARIABLE_ATTRIBUTE
             result_name: the result name to display
             check_priority (int): the check priority
             reasoning (str): reason string for failed check
@@ -283,12 +285,16 @@ class IMOSCheck(BaseNCCheck):
         return:
             result (Result): result for the check
         """
-        result = self._check_present((name,), ds, IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+        result = self._check_present(name, ds, check_type,
                             result_name,
                             BaseCheck.HIGH)
 
         if result.value:
-            attribute_value = getattr(ds.dataset, name)
+            if check_type == IMOSCheck.CHECK_GLOBAL_ATTRIBUTE:
+                attribute_value = getattr(ds.dataset, name[0])
+
+            if check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
+                attribute_value = getattr(ds.dataset.variables[name[0]], name[1])
 
             if not isinstance(attribute_value, type):
                 if not reasoning:
@@ -322,9 +328,10 @@ class IMOSCheck(BaseNCCheck):
 
         if result.value:
             result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
-            result = self._check_attribute_type("geospatial_lat_min",
+            result = self._check_attribute_type(('geospatial_lat_min',),
                                             Number,
                                             ds,
+                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                             result_name,
                                             BaseCheck.HIGH,
                                             ["Attribute type is not numeric"])
@@ -345,9 +352,10 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             result_name = ('globalattr', 'geospatial_lat_max', 'check_attribute_type')
-            result2 = self._check_attribute_type("geospatial_lat_max",
+            result2 = self._check_attribute_type(('geospatial_lat_max',),
                                                 Number,
                                                 ds,
+                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                                 result_name,
                                                 BaseCheck.HIGH,
                                                 ["Attribute type is not numeric"])
@@ -382,9 +390,10 @@ class IMOSCheck(BaseNCCheck):
 
         if result.value:
             result_name = ('globalattr', 'geospatial_lon_min', 'check_attribute_type')
-            result = self._check_attribute_type("geospatial_lon_min",
+            result = self._check_attribute_type(('geospatial_lon_min',),
                                                 Number,
                                                 ds,
+                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                                 result_name,
                                                 BaseCheck.HIGH,
                                                 ["Attribute type is not numeric"])
@@ -405,9 +414,10 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             result_name = ('globalattr', 'geospatial_lon_max', 'check_attribute_type')
-            result2 = self._check_attribute_type("geospatial_lon_max",
+            result2 = self._check_attribute_type(('geospatial_lon_max',),
                                                 Number,
                                                 ds,
+                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                                 result_name,
                                                 BaseCheck.HIGH,
                                                 ["Attribute type is not numeric"])
@@ -442,9 +452,10 @@ class IMOSCheck(BaseNCCheck):
 
         if result.value:
             result_name = ('globalattr', 'geospatial_vertical_min', 'check_attribute_type')
-            result = self._check_attribute_type("geospatial_vertical_min",
+            result = self._check_attribute_type(('geospatial_vertical_min',),
                                                 Number,
                                                 ds,
+                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                                 result_name,
                                                 BaseCheck.HIGH,
                                                 ["Attribute type is not numeric"])
@@ -465,9 +476,10 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             result_name = ('globalattr', 'geospatial_vertical_max', 'check_attribute_type')
-            result2 = self._check_attribute_type("geospatial_vertical_max",
+            result2 = self._check_attribute_type(('geospatial_vertical_max',),
                                                 Number,
                                                 ds,
+                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                                 result_name,
                                                 BaseCheck.HIGH,
                                                 ["Attribute type is not numeric"])
@@ -559,9 +571,10 @@ class IMOSCheck(BaseNCCheck):
         result_name = ('globalattr', name, 'check_atttribute_type')
         reasoning = ["Attribute type is not string"]
 
-        result = self._check_attribute_type(name,
+        result = self._check_attribute_type((name,),
                                              basestring,
                                              ds,
+                                             IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                              result_name,
                                              BaseCheck.HIGH,
                                              reasoning,
@@ -654,5 +667,25 @@ class IMOSCheck(BaseNCCheck):
                                     result_name,
                                     BaseCheck.HIGH)
         ret_val.append(result)
+
+        return ret_val
+
+    def check_variables_long_name(self, ds):
+        """
+        Check the every variable long name attribute and ensure it is string type.
+        """
+        ret_val = []
+        for name, var in ds.dataset.variables.iteritems():
+            result_name = ('var', name, 'long_name', 'check_atttribute_type')
+            reasoning = ["Attribute type is not string"]
+
+            result = self._check_attribute_type((name,'long_name',),
+                                                 basestring,
+                                                 ds,
+                                                 IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                                 result_name,
+                                                 BaseCheck.HIGH,
+                                                 reasoning)
+            ret_val.append(result)
 
         return ret_val
