@@ -291,7 +291,6 @@ class IMOSCheck(BaseNCCheck):
             attribute_value = getattr(ds.dataset, name)
 
             if not isinstance(attribute_value, type):
-                print "called"
                 if not reasoning:
                     reasoning = ["Attribute type is not equal to " + str(type)]
                 result = Result(check_priority, False, result_name, reasoning)
@@ -315,50 +314,117 @@ class IMOSCheck(BaseNCCheck):
         match range in data and numeric type
         """
         ret_val = []
-        result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
-        result = self._check_attribute_type("geospatial_lat_min",
-                                            Number,
-                                            ds,
-                                            result_name,
-                                            BaseCheck.HIGH,
-                                            ["Attribute type is not numeric"])
 
-        if result:
-            ret_val.append(result)
+        result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
+        result = self._check_present(('LATITUDE',), ds, IMOSCheck.CHECK_VARIABLE,
+                                     result_name,
+                                     BaseCheck.HIGH)
 
         if result.value:
-            geospatial_lat_min = getattr(ds.dataset, "geospatial_lat_min", None)
-            result_name = ('globalattr', 'geospatial_lat_min','check_minimum_value')
-            result = self._check_value(('LATITUDE',),
-                                       geospatial_lat_min,
-                                       IMOSCheck.OPERATOR_MIN,
-                                       ds,
-                                       IMOSCheck.CHECK_VARIABLE,
-                                       result_name,
-                                       BaseCheck.HIGH)
-            ret_val.append(result)
-
-        result_name = ('globalattr', 'geospatial_lat_max', 'check_attribute_type')
-        result2 = self._check_attribute_type("geospatial_lat_max",
+            result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
+            result = self._check_attribute_type("geospatial_lat_min",
                                             Number,
                                             ds,
                                             result_name,
                                             BaseCheck.HIGH,
                                             ["Attribute type is not numeric"])
-        if result2:
-            ret_val.append(result2)
 
-        if result2.value:
-            geospatial_lat_max = getattr(ds.dataset, "geospatial_lat_max", None)
-            result_name = ('globalattr', 'geospatial_lat_max','check_maximum_value')
-            result = self._check_value(('LONGITUDE',),
-                                       geospatial_lat_max,
-                                       IMOSCheck.OPERATOR_MAX,
-                                       ds,
-                                       IMOSCheck.CHECK_VARIABLE,
-                                       result_name,
-                                       BaseCheck.HIGH)
-            ret_val.append(result)
+            if result:
+                ret_val.append(result)
+
+            if result.value:
+                geospatial_lat_min = getattr(ds.dataset, "geospatial_lat_min", None)
+                result_name = ('globalattr', 'geospatial_lat_min','check_minimum_value')
+                result = self._check_value(('LATITUDE',),
+                                           geospatial_lat_min,
+                                           IMOSCheck.OPERATOR_MIN,
+                                           ds,
+                                           IMOSCheck.CHECK_VARIABLE,
+                                           result_name,
+                                           BaseCheck.HIGH)
+                ret_val.append(result)
+
+            result_name = ('globalattr', 'geospatial_lat_max', 'check_attribute_type')
+            result2 = self._check_attribute_type("geospatial_lat_max",
+                                                Number,
+                                                ds,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                ["Attribute type is not numeric"])
+            if result2:
+                ret_val.append(result2)
+
+            if result2.value:
+                geospatial_lat_max = getattr(ds.dataset, "geospatial_lat_max", None)
+                result_name = ('globalattr', 'geospatial_lat_max','check_maximum_value')
+                result = self._check_value(('LATITUDE',),
+                                           geospatial_lat_max,
+                                           IMOSCheck.OPERATOR_MAX,
+                                           ds,
+                                           IMOSCheck.CHECK_VARIABLE,
+                                           result_name,
+                                           BaseCheck.HIGH)
+                ret_val.append(result)
+
+        return ret_val
+
+    def check_geospatial_lon_min_max(self, ds):
+        """
+        Check the global geospatial_lon_min and geospatial_lon_max attributes
+        match range in data and numeric type
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'geospatial_lon_min', 'check_attribute_type')
+        result = self._check_present(('LONGITUDE',), ds, IMOSCheck.CHECK_VARIABLE,
+                                     result_name,
+                                     BaseCheck.HIGH)
+
+        if result.value:
+            result_name = ('globalattr', 'geospatial_lon_min', 'check_attribute_type')
+            result = self._check_attribute_type("geospatial_lon_min",
+                                                Number,
+                                                ds,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                ["Attribute type is not numeric"])
+
+            if result:
+                ret_val.append(result)
+
+            if result.value:
+                geospatial_lat_min = getattr(ds.dataset, "geospatial_lat_min", None)
+                result_name = ('globalattr', 'geospatial_lon_min','check_minimum_value')
+                result = self._check_value(('LONGITUDE',),
+                                           geospatial_lat_min,
+                                           IMOSCheck.OPERATOR_MIN,
+                                           ds,
+                                           IMOSCheck.CHECK_VARIABLE,
+                                           result_name,
+                                           BaseCheck.HIGH)
+                ret_val.append(result)
+
+            result_name = ('globalattr', 'geospatial_lon_max', 'check_attribute_type')
+            result2 = self._check_attribute_type("geospatial_lon_max",
+                                                Number,
+                                                ds,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                ["Attribute type is not numeric"])
+            if result2:
+                ret_val.append(result2)
+
+            if result2.value:
+                geospatial_lat_max = getattr(ds.dataset, "geospatial_lon_max", None)
+                result_name = ('globalattr', 'geospatial_lon_max','check_maximum_value')
+                result = self._check_value(('LONGITUDE',),
+                                           geospatial_lat_max,
+                                           IMOSCheck.OPERATOR_MAX,
+                                           ds,
+                                           IMOSCheck.CHECK_VARIABLE,
+                                           result_name,
+                                           BaseCheck.HIGH)
+                ret_val.append(result)
 
         return ret_val
 
