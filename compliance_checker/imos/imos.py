@@ -491,7 +491,8 @@ class IMOSCheck(BaseNCCheck):
 
     def check_acknowledgement(self, ds):
         """
-        Check the global naming authority attribute and ensure it has value 'IMOS'
+        Check the global acknowledgement attribute and ensure it has expected
+        value
         """
         ret_val = []
 
@@ -499,6 +500,27 @@ class IMOSCheck(BaseNCCheck):
         value = "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy (NCRIS) and the Super Science Initiative (SSI)"
         ret_val = []
         result = self._check_value(('acknowledgement',),
+                                    value,
+                                    IMOSCheck.OPERATOR_SUB_STRING,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+        ret_val.append(result)
+
+        return ret_val
+
+    def check_distribution_statement(self, ds):
+        """
+        Check the global distribution statement attribute and ensure it has
+        expected value
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'distribution_statement','check_attributes')
+        value = 'Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.'
+        ret_val = []
+        result = self._check_value(('distribution_statement',),
                                     value,
                                     IMOSCheck.OPERATOR_SUB_STRING,
                                     ds,
