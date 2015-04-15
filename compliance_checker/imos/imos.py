@@ -190,7 +190,8 @@ class IMOSCheck(BaseNCCheck):
                 variable = ds.dataset.variables.get(name[0], None)
 
             if check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
-                pass
+                variable = ds.dataset.variables.get(name[0], None)
+                retrieved_value = getattr(variable, name[1])
 
             if operator == IMOSCheck.OPERATOR_EQUAL:
                 if retrieved_value != value:
@@ -739,5 +740,64 @@ class IMOSCheck(BaseNCCheck):
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
             ret_val.append(result)
+
+        return ret_val
+
+    def check_time_variable(self, ds):
+        """
+        Check time variable attributes:
+            standard_name
+            axis
+            valid_min
+            valid_max
+        """
+        ret_val = []
+        result_name = ('var', 'time', 'standard_name', 'check_attributes')
+
+        result = self._check_value(('TIME','standard_name',),
+                                    'time',
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        ret_val.append(result)
+
+        result_name = ('var', 'time', 'axis', 'check_attributes')
+
+        result = self._check_value(('TIME','axis',),
+                                    'T',
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        ret_val.append(result)
+
+        result_name = ('var', 'time', 'valid_min', 'check_present')
+
+        result = self._check_present(('TIME', 'valid_min'),
+                                     ds,
+                                     IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                     result_name,
+                                     BaseCheck.HIGH)
+
+        ret_val.append(result)
+
+        result_name = ('var', 'time', 'valid_max', 'check_present')
+
+        result = self._check_present(('TIME', 'valid_max'),
+                                     ds,
+                                     IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                     result_name,
+                                     BaseCheck.HIGH)
+
+        ret_val.append(result)
 
         return ret_val
