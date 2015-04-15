@@ -196,7 +196,7 @@ class IMOSCheck(BaseNCCheck):
             if operator == IMOSCheck.OPERATOR_EQUAL:
                 if retrieved_value != value:
                     if not reasoning:
-                        reasoning = ["Attribute value is not equal to " + value]
+                        reasoning = ["Attribute value is not equal to " + str(value)]
                         passed = False
 
             if operator == IMOSCheck.OPERATOR_MIN:
@@ -752,7 +752,7 @@ class IMOSCheck(BaseNCCheck):
             valid_max
         """
         ret_val = []
-        result_name = ('var', 'time', 'standard_name', 'check_attributes')
+        result_name = ('var', 'TIME', 'standard_name', 'check_attributes')
 
         result = self._check_value(('TIME','standard_name',),
                                     'time',
@@ -766,7 +766,7 @@ class IMOSCheck(BaseNCCheck):
 
         ret_val.append(result)
 
-        result_name = ('var', 'time', 'axis', 'check_attributes')
+        result_name = ('var', 'TIME', 'axis', 'check_attributes')
 
         result = self._check_value(('TIME','axis',),
                                     'T',
@@ -780,7 +780,7 @@ class IMOSCheck(BaseNCCheck):
 
         ret_val.append(result)
 
-        result_name = ('var', 'time', 'valid_min', 'check_present')
+        result_name = ('var', 'TIME', 'valid_min', 'check_present')
 
         result = self._check_present(('TIME', 'valid_min'),
                                      ds,
@@ -790,7 +790,7 @@ class IMOSCheck(BaseNCCheck):
 
         ret_val.append(result)
 
-        result_name = ('var', 'time', 'valid_max', 'check_present')
+        result_name = ('var', 'TIME', 'valid_max', 'check_present')
 
         result = self._check_present(('TIME', 'valid_max'),
                                      ds,
@@ -799,5 +799,117 @@ class IMOSCheck(BaseNCCheck):
                                      BaseCheck.HIGH)
 
         ret_val.append(result)
+
+        return ret_val
+
+    def check_longitude_variable(self, ds):
+        """
+        Check time variable attributes:
+            standard_name  value is 'longitude'
+            axis   value is 'X'
+            valid_min 0 or -180
+            valid_max 360 or 10
+            reference_datum is a string type
+        """
+        ret_val = []
+        result_name = ('var', 'LONGITUDE', 'standard_name', 'check_attributes')
+
+        result = self._check_value(('LONGITUDE','standard_name',),
+                                    'longitude',
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        ret_val.append(result)
+
+        result_name = ('var', 'LONGITUDE', 'axis', 'check_attributes')
+
+        result = self._check_value(('LONGITUDE','axis',),
+                                    'X',
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        ret_val.append(result)
+
+        result_name = ('var', 'LONGITUDE', 'reference_datum', 'check_attributes')
+        self._check_attribute_type(('LONGITUDE','reference_datum',),
+                                   basestring,
+                                   ds,
+                                   IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                   result_name,
+                                   BaseCheck.HIGH,
+                                   None,
+                                   True)
+
+        ret_val.append(result)
+
+        result1 = self._check_value(('LONGITUDE','valid_min',),
+                                    0,
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        result2 = self._check_value(('LONGITUDE','valid_max',),
+                                    360,
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        result3 = self._check_value(('LONGITUDE','valid_min',),
+                                    -180,
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        result4 = self._check_value(('LONGITUDE','valid_max',),
+                                    10,
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        if (result1.value and result2.value) or (result3.value and result4.value):
+            result_name = ('var', 'LONGITUDE', 'valid_min', 'check_min_value')
+            result = Result(BaseCheck.HIGH, True, result_name, None)
+            ret_val.append(result)
+
+            result_name = ('var', 'LONGITUDE', 'valid_max', 'check_max_value')
+            result = Result(BaseCheck.HIGH, True, result_name, None)
+            ret_val.append(result)
+
+        else:
+            result_name = ('var', 'LONGITUDE', 'valid_min', 'check_min_value')
+            reasoning = ["doesn't match value pair (0, 360) or (-180, 10)"]
+            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+            ret_val.append(result)
+
+            result_name = ('var', 'LONGITUDE', 'valid_max', 'check_max_value')
+            reasoning = ["doesn't match value pair (0, 360) or (-180, 10)"]
+            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+            ret_val.append(result)
 
         return ret_val
