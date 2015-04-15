@@ -9,7 +9,11 @@ from numpy import amax
 from numpy import amin
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
 import datetime
-  
+import numpy as np
+from compliance_checker.cf.util import find_coord_vars
+from util import is_monotonic
+from util import is_numeric
+
 class IMOSCheck(BaseNCCheck):
     register_checker = True
     name = 'imos'
@@ -30,7 +34,7 @@ class IMOSCheck(BaseNCCheck):
         return {}
 
     def setup(self, ds):
-        pass
+        self._coordinate_variables = find_coord_vars(ds.dataset)
 
     def check_global_attributes(self, ds):
         """
@@ -686,6 +690,35 @@ class IMOSCheck(BaseNCCheck):
                                                  result_name,
                                                  BaseCheck.HIGH,
                                                  reasoning)
+            ret_val.append(result)
+
+        return ret_val
+
+    def check_coordinate_variables(self, ds):
+        """
+        Check all coordinate variables to ensure it has numeric type (byte,
+        float and integer) and also check whether it is monotonic
+        """
+        ret_val = []
+        for var in self._coordinate_variables:
+            result_name = ('var', var.name, 'check_variable_type')
+            passed = True
+            reasoning = None
+            if not is_numeric(var.datatype):
+                reasoning = ["Variable type is not numeric"]
+                passed = False
+
+            result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+            ret_val.append(result)
+
+            result_name = ('var', var.name, 'check_monotonic')
+            passed = True
+            reasoning = None
+
+            if not is_monotonic(var.__array__()):
+                reasoning = ["Variable values are not monotonic"]
+
+            result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
             ret_val.append(result)
 
         return ret_val
