@@ -10,9 +10,9 @@ from numpy import amin
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
 import datetime
 import numpy as np
-from compliance_checker.cf.util import find_coord_vars
 from util import is_monotonic
 from util import is_numeric
+from compliance_checker.cf.util import find_coord_vars, _possiblet, _possiblez, _possiblex, _possibley, _possibleaxis, _possiblexunits, _possibleyunits, _possibletunits, _possibleaxisunits
 
 class IMOSCheck(BaseNCCheck):
     register_checker = True
@@ -698,7 +698,10 @@ class IMOSCheck(BaseNCCheck):
         """
         Check all coordinate variables to ensure it has numeric type (byte,
         float and integer) and also check whether it is monotonic
-        """
+        """        
+
+        space_time_checked = False
+
         ret_val = []
         for var in self._coordinate_variables:
             result_name = ('var', var.name, 'check_variable_type')
@@ -717,6 +720,22 @@ class IMOSCheck(BaseNCCheck):
 
             if not is_monotonic(var.__array__()):
                 reasoning = ["Variable values are not monotonic"]
+
+            result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+            ret_val.append(result)
+
+            result_name = ('var', 'check_space_time_coordinate')
+            passed = False
+            reasoning = None
+            if not space_time_checked:
+                if str(var.name) in _possibleaxis \
+                    or (hasattr(var, 'units') and (var.units in _possibleaxisunits or var.units.split(" ")[0]  in _possibleaxisunits)) \
+                    or hasattr(var,'positive'):
+                    space_time_checked = True
+                    passed = True
+                else:
+                    passed = False
+                    reasoning = ["No space-time coordinate variable found"]
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
             ret_val.append(result)
