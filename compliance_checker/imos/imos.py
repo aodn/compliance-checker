@@ -804,7 +804,7 @@ class IMOSCheck(BaseNCCheck):
 
     def check_longitude_variable(self, ds):
         """
-        Check time variable attributes:
+        Check longitude variable attributes:
             standard_name  value is 'longitude'
             axis   value is 'X'
             valid_min 0 or -180
@@ -911,5 +911,81 @@ class IMOSCheck(BaseNCCheck):
             reasoning = ["doesn't match value pair (0, 360) or (-180, 10)"]
             result = Result(BaseCheck.HIGH, False, result_name, reasoning)
             ret_val.append(result)
+
+        return ret_val
+
+    def check_latitude_variable(self, ds):
+        """
+        Check latitude variable attributes:
+            standard_name  value is 'latitude'
+            axis   value is 'Y'
+            valid_min -90
+            valid_max 90
+            reference_datum is a string type
+        """
+        ret_val = []
+        result_name = ('var', 'LATITUDE', 'standard_name', 'check_attributes')
+
+        result = self._check_value(('LATITUDE','standard_name',),
+                                    'latitude',
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        ret_val.append(result)
+
+        result_name = ('var', 'LATITUDE', 'axis', 'check_attributes')
+
+        result = self._check_value(('LATITUDE','axis',),
+                                    'Y',
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+
+        ret_val.append(result)
+
+        result_name = ('var', 'LATITUDE', 'reference_datum', 'check_attributes')
+        self._check_attribute_type(('LATITUDE','reference_datum',),
+                                   basestring,
+                                   ds,
+                                   IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                   result_name,
+                                   BaseCheck.HIGH,
+                                   None,
+                                   True)
+
+        ret_val.append(result)
+
+        result_name = ('var', 'LATITUDE', 'valid_min', 'check_min_value')
+        result = self._check_value(('LATITUDE','valid_min',),
+                                    -90,
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+        ret_val.append(result)
+
+        result_name = ('var', 'LATITUDE', 'valid_max', 'check_max_value')
+        result = self._check_value(('LATITUDE','valid_max',),
+                                    90,
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH,
+                                    None,
+                                    True)
+        ret_val.append(result)
 
         return ret_val
