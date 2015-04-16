@@ -780,25 +780,33 @@ class IMOSCheck(BaseNCCheck):
 
         ret_val.append(result)
 
-        result_name = ('var', 'TIME', 'valid_min', 'check_present')
-
-        result = self._check_present(('TIME', 'valid_min'),
+        result_name = ('var', 'TIME', 'check_present')
+        result = self._check_present(('TIME',),
                                      ds,
-                                     IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                     IMOSCheck.CHECK_VARIABLE,
                                      result_name,
                                      BaseCheck.HIGH)
+        if result.value:
 
-        ret_val.append(result)
+            result_name = ('var', 'TIME', 'valid_min', 'check_present')
 
-        result_name = ('var', 'TIME', 'valid_max', 'check_present')
+            result = self._check_present(('TIME', 'valid_min'),
+                                         ds,
+                                         IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                         result_name,
+                                         BaseCheck.HIGH)
 
-        result = self._check_present(('TIME', 'valid_max'),
-                                     ds,
-                                     IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                     result_name,
-                                     BaseCheck.HIGH)
+            ret_val.append(result)
 
-        ret_val.append(result)
+            result_name = ('var', 'TIME', 'valid_max', 'check_present')
+
+            result = self._check_present(('TIME', 'valid_max'),
+                                         ds,
+                                         IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                         result_name,
+                                         BaseCheck.HIGH)
+
+            ret_val.append(result)
 
         return ret_val
 
@@ -841,7 +849,7 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
 
         result_name = ('var', 'LONGITUDE', 'reference_datum', 'check_attributes')
-        self._check_attribute_type(('LONGITUDE','reference_datum',),
+        result = self._check_attribute_type(('LONGITUDE','reference_datum',),
                                    basestring,
                                    ds,
                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -953,7 +961,7 @@ class IMOSCheck(BaseNCCheck):
         ret_val.append(result)
 
         result_name = ('var', 'LATITUDE', 'reference_datum', 'check_attributes')
-        self._check_attribute_type(('LATITUDE','reference_datum',),
+        result = self._check_attribute_type(('LATITUDE','reference_datum',),
                                    basestring,
                                    ds,
                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -988,4 +996,115 @@ class IMOSCheck(BaseNCCheck):
                                     True)
         ret_val.append(result)
 
+        return ret_val
+
+    def check_vertical_variable(self, ds):
+        """
+        Check vertical variable attributes:
+            standard_name  value is 'depth' or 'height'
+            axis   value is 'Z'
+            positive value is 'down' or "up"
+            valid_min exist
+            valid_max exists
+            reference_datum is a string type
+
+        """
+        ret_val = []
+
+        result_name = ('var', 'VERTICAL', 'check_present')
+        result = self._check_present(('VERTICAL',),
+                                     ds,
+                                     IMOSCheck.CHECK_VARIABLE,
+                                     result_name,
+                                     BaseCheck.HIGH)
+        if result.value:
+
+            result_name = ('var', 'VERTICAL', 'reference_datum', 'check_attributes')
+            result = self._check_attribute_type(('VERTICAL','reference_datum',),
+                                       basestring,
+                                       ds,
+                                       IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                       result_name,
+                                       BaseCheck.HIGH,
+                                       None,
+                                       True)
+
+            ret_val.append(result)
+
+            result1 = self._check_value(('VERTICAL','standard_name',),
+                              'depth',
+                              IMOSCheck.OPERATOR_EQUAL, ds,
+                              IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                              result_name,
+                              BaseCheck.HIGH,
+                              True)
+
+            result2 = self._check_value(('VERTICAL','standard_name',),
+                              'height',
+                              IMOSCheck.OPERATOR_EQUAL, ds,
+                              IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                              result_name,
+                              BaseCheck.HIGH,
+                              True)
+
+            result3 = self._check_value(('VERTICAL','positive',),
+                              'down',
+                              IMOSCheck.OPERATOR_EQUAL, ds,
+                              IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                              result_name,
+                              BaseCheck.HIGH,
+                              True)
+
+            result4 = self._check_value(('VERTICAL','positive',),
+                              'up',
+                              IMOSCheck.OPERATOR_EQUAL, ds,
+                              IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                              result_name,
+                              BaseCheck.HIGH,
+                              True)
+
+
+            if (result1.value and result3.value) or (result2.value and result4.value):
+                result_name = ('var', 'VERTICAL', 'positive', 'check_value')
+                result = Result(BaseCheck.HIGH, True, result_name, None)
+                ret_val.append(result)
+            else:
+                result_name = ('var', 'VERTICAL', 'positive', 'check_value')
+                reasoning = ["doesn't have value pair (depth, down) or (height, up)"]
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                ret_val.append(result)
+
+            result_name = ('var', 'VERTICAL', 'valid_min', 'check_present')
+
+            result = self._check_present(('VERTICAL', 'valid_min'),
+                                         ds,
+                                         IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                         result_name,
+                                         BaseCheck.HIGH)
+
+            ret_val.append(result)
+
+            result_name = ('var', 'VERTICAL', 'valid_max', 'check_present')
+
+            result = self._check_present(('VERTICAL', 'valid_max'),
+                                         ds,
+                                         IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                         result_name,
+                                         BaseCheck.HIGH)
+
+            ret_val.append(result)
+
+            result_name = ('var', 'VERTICAL', 'axis', 'check_attributes')
+
+            result = self._check_value(('VERTICAL','axis',),
+                                        'Z',
+                                        IMOSCheck.OPERATOR_EQUAL,
+                                        ds,
+                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                        result_name,
+                                        BaseCheck.HIGH,
+                                        None,
+                                        True)
+    
+            ret_val.append(result)
         return ret_val
