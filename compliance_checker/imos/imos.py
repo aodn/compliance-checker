@@ -12,6 +12,8 @@ import datetime
 import numpy as np
 from util import is_monotonic
 from util import is_numeric
+from util import find_ancillary_variables
+from util import find_data_variables
 from compliance_checker.cf.util import find_coord_vars, _possiblet, _possiblez, _possiblex, _possibley, _possibleaxis, _possiblexunits, _possibleyunits, _possibletunits, _possibleaxisunits
 from types import IntType
 
@@ -36,6 +38,10 @@ class IMOSCheck(BaseNCCheck):
 
     def setup(self, ds):
         self._coordinate_variables = find_coord_vars(ds.dataset)
+        self._ancillary_variables = find_ancillary_variables(ds.dataset)
+        
+        self._data_variables = find_data_variables(ds.dataset, self._coordinate_variables, self._ancillary_variables)
+        
 
     def check_global_attributes(self, ds):
         """
@@ -736,7 +742,7 @@ class IMOSCheck(BaseNCCheck):
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
             ret_val.append(result)
 
-            result_name = ('var', 'check_space_time_coordinate')
+            result_name = ('var', 'space_time_coordinate', 'check_variable_present')
             passed = False
             reasoning = None
             if not space_time_checked:
@@ -1176,5 +1182,21 @@ class IMOSCheck(BaseNCCheck):
                                                 True)
             if not result is None:
                 ret_val.append(result)
+
+        return ret_val
+
+    def check_data_variables(self, ds):
+        """
+        Check data variable:
+            at least one data variable exisits
+        """
+        ret_val = []
+        result_name = ('var', 'data_variable', 'check_data_variable_present')
+        if len(self._data_variables) == 0:
+            result = Result(BaseCheck.HIGH, False, result_name, ['No data variable exists'])
+        else:
+            result = Result(BaseCheck.HIGH, True, result_name, None)
+
+        ret_val.append(result)
 
         return ret_val
