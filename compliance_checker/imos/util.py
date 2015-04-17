@@ -25,3 +25,24 @@ def is_numeric(variable_type):
         return True
 
     return False
+
+def find_ancillary_variables(dataset):
+    ancillary_variables = []
+
+    for name, var in dataset.variables.iteritems():
+        ancillary_variable_names = getattr(var, 'ancillary_variables', None)
+        if ancillary_variable_names is not None:
+            for ancillary_variable_name in ancillary_variable_names.split(' '):
+                ancillary_variable = dataset.variables[ancillary_variable_name]
+                ancillary_variables.append(ancillary_variable)
+
+    return ancillary_variables
+
+def find_data_variables(dataset, coordinate_variables, ancillary_variables):
+    data_variables = []
+
+    for name, var in dataset.variables.iteritems():
+        if var not in coordinate_variables and var not in ancillary_variables:
+            data_variables.append(var)
+
+    return data_variables
