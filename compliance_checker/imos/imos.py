@@ -634,9 +634,9 @@ class IMOSCheck(BaseNCCheck):
 
     def check_data_centre_email(self, ds):
         """
-        Check the global data_centre_email and ensure it has value 'info@emii.org'
+        Check the global data_centre_email and ensure it has value 'info@emii.org.au'
         """
-        return self._check_global_value_equal(ds,'data_centre_email', 'info@emii.org')
+        return self._check_global_value_equal(ds,'data_centre_email', 'info@emii.org.au')
 
     def check_principal_investigator(self, ds):
         return self._check_str_type(ds, 'principal_investigator')
@@ -763,33 +763,6 @@ class IMOSCheck(BaseNCCheck):
             valid_max
         """
         ret_val = []
-        result_name = ('var', 'TIME', 'standard_name', 'check_attributes')
-
-        result = self._check_value(('TIME','standard_name',),
-                                    'time',
-                                    IMOSCheck.OPERATOR_EQUAL,
-                                    ds,
-                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                    result_name,
-                                    BaseCheck.HIGH,
-                                    None,
-                                    True)
-
-        ret_val.append(result)
-
-        result_name = ('var', 'TIME', 'axis', 'check_attributes')
-
-        result = self._check_value(('TIME','axis',),
-                                    'T',
-                                    IMOSCheck.OPERATOR_EQUAL,
-                                    ds,
-                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                    result_name,
-                                    BaseCheck.HIGH,
-                                    None,
-                                    True)
-
-        ret_val.append(result)
 
         result_name = ('var', 'TIME', 'check_present')
         result = self._check_present(('TIME',),
@@ -798,6 +771,34 @@ class IMOSCheck(BaseNCCheck):
                                      result_name,
                                      BaseCheck.HIGH)
         if result.value:
+
+            result_name = ('var', 'TIME', 'standard_name', 'check_attributes')
+
+            result = self._check_value(('TIME','standard_name',),
+                                        'time',
+                                        IMOSCheck.OPERATOR_EQUAL,
+                                        ds,
+                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                        result_name,
+                                        BaseCheck.HIGH,
+                                        None,
+                                        True)
+
+            ret_val.append(result)
+
+            result_name = ('var', 'TIME', 'axis', 'check_attributes')
+
+            result = self._check_value(('TIME','axis',),
+                                        'T',
+                                        IMOSCheck.OPERATOR_EQUAL,
+                                        ds,
+                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                        result_name,
+                                        BaseCheck.HIGH,
+                                        None,
+                                        True)
+
+            ret_val.append(result)
 
             result_name = ('var', 'TIME', 'valid_min', 'check_present')
 
@@ -819,6 +820,18 @@ class IMOSCheck(BaseNCCheck):
 
             ret_val.append(result)
 
+            result_name = ('var', 'TIME', 'calendar', 'check_attribute_value')
+
+            result = self._check_value(('TIME','calendar',),
+                                        'gregorian',
+                                        IMOSCheck.OPERATOR_EQUAL,
+                                        ds,
+                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                        result_name,
+                                        BaseCheck.HIGH)
+
+            ret_val.append(result)
+
         return ret_val
 
     def check_longitude_variable(self, ds):
@@ -827,7 +840,7 @@ class IMOSCheck(BaseNCCheck):
             standard_name  value is 'longitude'
             axis   value is 'X'
             valid_min 0 or -180
-            valid_max 360 or 10
+            valid_max 360 or 180
             reference_datum is a string type
         """
         ret_val = []
@@ -902,7 +915,7 @@ class IMOSCheck(BaseNCCheck):
                                     True)
 
         result4 = self._check_value(('LONGITUDE','valid_max',),
-                                    10,
+                                    180,
                                     IMOSCheck.OPERATOR_EQUAL,
                                     ds,
                                     IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -922,12 +935,12 @@ class IMOSCheck(BaseNCCheck):
 
         else:
             result_name = ('var', 'LONGITUDE', 'valid_min', 'check_min_value')
-            reasoning = ["doesn't match value pair (0, 360) or (-180, 10)"]
+            reasoning = ["doesn't match value pair (0, 360) or (-180, 180)"]
             result = Result(BaseCheck.HIGH, False, result_name, reasoning)
             ret_val.append(result)
 
             result_name = ('var', 'LONGITUDE', 'valid_max', 'check_max_value')
-            reasoning = ["doesn't match value pair (0, 360) or (-180, 10)"]
+            reasoning = ["doesn't match value pair (0, 360) or (-180, 180)"]
             result = Result(BaseCheck.HIGH, False, result_name, reasoning)
             ret_val.append(result)
 
