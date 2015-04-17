@@ -13,6 +13,7 @@ import numpy as np
 from util import is_monotonic
 from util import is_numeric
 from compliance_checker.cf.util import find_coord_vars, _possiblet, _possiblez, _possiblex, _possibley, _possibleaxis, _possiblexunits, _possibleyunits, _possibletunits, _possibleaxisunits
+from types import IntType
 
 class IMOSCheck(BaseNCCheck):
     register_checker = True
@@ -301,7 +302,17 @@ class IMOSCheck(BaseNCCheck):
             if check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
                 attribute_value = getattr(ds.dataset.variables[name[0]], name[1])
 
-            if not isinstance(attribute_value, type):
+            dtype = getattr(attribute_value, 'dtype', None)
+            passed = True
+
+            if not dtype is None:
+                if dtype != type:
+                    passed = False
+            else:
+                if not isinstance(attribute_value, type):
+                    passed = False
+
+            if not passed:
                 if not reasoning:
                     reasoning = ["Attribute type is not equal to " + str(type)]
                 result = Result(check_priority, False, result_name, reasoning)
@@ -334,7 +345,7 @@ class IMOSCheck(BaseNCCheck):
         if result.value:
             result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
             result = self._check_attribute_type(('geospatial_lat_min',),
-                                            Number,
+                                            np.number,
                                             ds,
                                             IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                             result_name,
@@ -358,7 +369,7 @@ class IMOSCheck(BaseNCCheck):
 
             result_name = ('globalattr', 'geospatial_lat_max', 'check_attribute_type')
             result2 = self._check_attribute_type(('geospatial_lat_max',),
-                                                Number,
+                                                np.number,
                                                 ds,
                                                 IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                                 result_name,
@@ -396,7 +407,7 @@ class IMOSCheck(BaseNCCheck):
         if result.value:
             result_name = ('globalattr', 'geospatial_lon_min', 'check_attribute_type')
             result = self._check_attribute_type(('geospatial_lon_min',),
-                                                Number,
+                                                np.number,
                                                 ds,
                                                 IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                                 result_name,
@@ -420,7 +431,7 @@ class IMOSCheck(BaseNCCheck):
 
             result_name = ('globalattr', 'geospatial_lon_max', 'check_attribute_type')
             result2 = self._check_attribute_type(('geospatial_lon_max',),
-                                                Number,
+                                                np.number,
                                                 ds,
                                                 IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                                 result_name,
@@ -1105,6 +1116,52 @@ class IMOSCheck(BaseNCCheck):
                                         BaseCheck.HIGH,
                                         None,
                                         True)
-    
+
             ret_val.append(result)
+        return ret_val
+
+    def check_variable_attribute_type(self, ds):
+        """
+        Check variable attribute to ensure it has the same type as the variable
+        """
+
+        ret_val = []
+        reasoning = ["Attribute type is not same as variable type"]
+        for name,var in ds.dataset.variables.iteritems():
+            result_name = ('var', name, '_FillValue', 'check_attribute_type')
+            result = self._check_attribute_type((name,'_FillValue',),
+                                                var.datatype,
+                                                ds,
+                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                reasoning,
+                                                True)
+            if not result is None:
+                ret_val.append(result)
+
+            result_name = ('var', name, 'valid_min', 'check_attribute_type')            
+            result = self._check_attribute_type((name,'valid_min',),
+                                                var.datatype,
+                                                ds,
+                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                reasoning,
+                                                True)
+            if not result is None:
+                ret_val.append(result)
+
+            result_name = ('var', name, 'valid_max', 'check_attribute_type')            
+            result = self._check_attribute_type((name,'valid_max',),
+                                                var.datatype,
+                                                ds,
+                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                reasoning,
+                                                True)
+            if not result is None:
+                ret_val.append(result)
+
         return ret_val
