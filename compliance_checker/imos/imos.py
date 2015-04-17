@@ -1193,10 +1193,34 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
         result_name = ('var', 'data_variable', 'check_data_variable_present')
         if len(self._data_variables) == 0:
-            result = Result(BaseCheck.HIGH, False, result_name, ['No data variable exists'])
+            result = Result(BaseCheck.HIGH, False, result_name, ["No data variable exists"])
         else:
             result = Result(BaseCheck.HIGH, True, result_name, None)
 
         ret_val.append(result)
+
+        if result.value:
+            required_dimensions = ['TIME', 'LATITUDE', 'LONGITUDE', 'DEPTH']
+            
+            for var in self._data_variables:
+                result_name = ('var', 'data_variable', var.name, 'check_dimension')
+                passed = True
+                reasoning = None
+
+                if len(var.dimensions) > 0:
+                    for dimension in var.dimensions:
+                        if dimension in required_dimensions:
+                            passed = True
+                        else:
+                            passed = False
+                else:
+                    passed = False
+
+                if not passed:
+                    reasoning =  ["dimension doesn't contain TIME, LATITUDE, LONGITUDE, DEPTH"]
+
+                result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+
+                ret_val.append(result)
 
         return ret_val
