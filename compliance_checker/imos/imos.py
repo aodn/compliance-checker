@@ -1201,7 +1201,7 @@ class IMOSCheck(BaseNCCheck):
 
         if result.value:
             required_dimensions = ['TIME', 'LATITUDE', 'LONGITUDE', 'DEPTH']
-            
+
             for var in self._data_variables:
                 result_name = ('var', 'data_variable', var.name, 'check_dimension')
                 passed = True
@@ -1221,6 +1221,15 @@ class IMOSCheck(BaseNCCheck):
 
                 result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
 
+                ret_val.append(result)
+                result_name = ('var', 'data_variable', var.name, 'check_attribute_type')
+
+                result = self._check_attribute_type((var.name,"units",),
+                                           basestring,
+                                           ds,
+                                           IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                           result_name,
+                                           BaseCheck.HIGH)
                 ret_val.append(result)
 
         return ret_val
