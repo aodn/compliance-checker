@@ -1222,14 +1222,59 @@ class IMOSCheck(BaseNCCheck):
                 result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
 
                 ret_val.append(result)
-                result_name = ('var', 'data_variable', var.name, 'check_attribute_type')
-
+                result_name = ('var', 'data_variable', var.name, 'units', 'check_attribute_type')
+                result = None
                 result = self._check_attribute_type((var.name,"units",),
                                            basestring,
                                            ds,
                                            IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
                                            result_name,
-                                           BaseCheck.HIGH)
-                ret_val.append(result)
+                                           BaseCheck.HIGH,
+                                           None,
+                                           True)
+                if result is not None:
+                    ret_val.append(result)
+
+                result_name = ('var', 'data_variable', var.name, '_FillValue', 'check_attribute_type')
+                reasoning = ["Attribute type is not same as variable type"]
+                result = None
+                result = self._check_attribute_type((var.name,'_FillValue',),
+                                                var.datatype,
+                                                ds,
+                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                reasoning,
+                                                True)
+                if result is not None:
+                    ret_val.append(result)
+
+                result_name = ('var', 'data_variable', var.name, 'valid_min', 'check_attribute_type')
+                reasoning = ["Attribute type is not same as variable type"]
+                result = None
+                result = self._check_attribute_type((var.name,'valid_min',),
+                                                var.datatype,
+                                                ds,
+                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                reasoning,
+                                                True)
+                if result is not None:
+                    ret_val.append(result)
+
+                result_name = ('var', 'data_variable', var.name, 'valid_max', 'check_attribute_type')
+                reasoning = ["Attribute type is not same as variable type"]
+                result = None
+                result = self._check_attribute_type((var.name,'valid_max',),
+                                                var.datatype,
+                                                ds,
+                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                                result_name,
+                                                BaseCheck.HIGH,
+                                                reasoning,
+                                                True)
+                if result is not None:
+                    ret_val.append(result)
 
         return ret_val
