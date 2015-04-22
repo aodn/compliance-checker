@@ -46,3 +46,27 @@ def find_data_variables(dataset, coordinate_variables, ancillary_variables):
             data_variables.append(var)
 
     return data_variables
+
+def find_quality_control_variables(dataset):
+    quality_control_variables = []
+
+    for name, var in dataset.variables.iteritems():
+        if name.endswith('_quality_control'):
+            quality_control_variables.append(var)
+            continue
+
+        standard_name = getattr(var, 'standard_name', None)
+        if standard_name is not None and standard_name.endswith('status_flag'):
+            quality_control_variables.append(var)
+            continue
+
+        long_name = getattr(var, 'long_name', None)
+        if long_name is not None and ('status_flag' in long_name or 'quality flag' in long_name):
+            quality_control_variables.append(var)
+            continue
+
+        if getattr(var, 'flag_values', None) is not None or getattr(var, 'flag_meanings', None) is not None:
+            quality_control_variables.append(var)
+            continue
+
+    return quality_control_variables
