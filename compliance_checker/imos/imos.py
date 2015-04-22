@@ -14,6 +14,7 @@ from util import is_monotonic
 from util import is_numeric
 from util import find_ancillary_variables
 from util import find_data_variables
+from util import find_quality_control_variables
 from compliance_checker.cf.util import find_coord_vars, _possiblet, _possiblez, _possiblex, _possibley, _possibleaxis, _possiblexunits, _possibleyunits, _possibletunits, _possibleaxisunits
 from types import IntType
 
@@ -42,6 +43,7 @@ class IMOSCheck(BaseNCCheck):
         
         self._data_variables = find_data_variables(ds.dataset, self._coordinate_variables, self._ancillary_variables)
         
+        self._quality_control_variables = find_quality_control_variables(ds.dataset)
 
     def check_global_attributes(self, ds):
         """
