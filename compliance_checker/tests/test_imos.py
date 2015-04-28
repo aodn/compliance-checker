@@ -14,8 +14,9 @@ import re
 
 
 static_files = {
-        'bad_data' : resource_filename('compliance_checker', 'tests/data/imos_bad_missing_data.nc'),
-        'good_data' : resource_filename('compliance_checker', 'tests/data/imos_good_data.nc')
+        'bad_data' : resource_filename('compliance_checker', 'tests/data/imos_bad_data.nc'),
+        'good_data' : resource_filename('compliance_checker', 'tests/data/imos_good_data.nc'),
+        'missing_data' : resource_filename('compliance_checker', 'tests/data/imos_missing_data.nc'),
         }
 
 class TestIMOS(unittest.TestCase):
@@ -42,6 +43,7 @@ class TestIMOS(unittest.TestCase):
         self.imos = IMOSCheck()
         self.good_dataset = self.get_pair(static_files['good_data'])
         self.bad_dataset = self.get_pair(static_files['bad_data'])
+        self.missing_dataset = self.get_pair(static_files['missing_data'])
 
     def get_pair(self, nc_dataset):
         '''
@@ -81,10 +83,10 @@ class TestIMOS(unittest.TestCase):
 
         for result in ret_val:
             self.assertFalse(result.value)
-        
+
     def test_check_project_attribute(self):
         ret_val = self.imos.check_project_attribute(self.good_dataset)
-        
+
         for result in ret_val:
             self.assertTrue(result.value)
 
@@ -106,7 +108,7 @@ class TestIMOS(unittest.TestCase):
 
     def test_check_data_centre(self):
         ret_val = self.imos.check_data_centre(self.good_dataset)
-        
+
         for result in ret_val:
             self.assertTrue(result.value)
 
@@ -126,3 +128,38 @@ class TestIMOS(unittest.TestCase):
         for result in ret_val:
             self.assertFalse(result.value)
 
+    def test_check_geospatial_lat_min_max(self):
+        ret_val = self.imos.check_geospatial_lat_min_max(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_geospatial_lat_min_max(self.bad_dataset)
+
+        for result in ret_val:
+            if 'check_attribute_type' in result.name:
+                self.assertTrue(result.value)
+            else:
+                self.assertFalse(result.value)
+
+        ret_val = self.imos.check_geospatial_lat_min_max(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_geospatial_lon_min_max(self):
+        ret_val = self.imos.check_geospatial_lat_min_max(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_geospatial_lat_min_max(self.bad_dataset)
+
+        for result in ret_val:
+            if 'check_attribute_type' in result.name:
+                self.assertTrue(result.value)
+            else:
+                self.assertFalse(result.value)
+
+        ret_val = self.imos.check_geospatial_lat_min_max(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
