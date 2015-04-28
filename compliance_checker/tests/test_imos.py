@@ -82,4 +82,47 @@ class TestIMOS(unittest.TestCase):
         for result in ret_val:
             self.assertFalse(result.value)
         
+    def test_check_project_attribute(self):
+        ret_val = self.imos.check_project_attribute(self.good_dataset)
         
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_project_attribute(self.bad_dataset)
+        
+        for result in ret_val:
+            self.assertFalse(result.value)
+    
+    def test_check_naming_authority(self):
+        ret_val = self.imos.check_naming_authority(self.good_dataset)
+        
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_naming_authority(self.bad_dataset)
+        
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_data_centre(self):
+        ret_val = self.imos.check_data_centre(self.good_dataset)
+        
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_data_centre(self.bad_dataset)
+        
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_author(self):
+        ret_val = self.imos.check_author(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_author(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
