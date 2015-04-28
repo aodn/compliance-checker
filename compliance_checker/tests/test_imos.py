@@ -14,7 +14,7 @@ import re
 
 
 static_files = {
-        'bad_missing_data' : resource_filename('compliance_checker', 'tests/data/imos_bad_missing_data.nc'),
+        'bad_data' : resource_filename('compliance_checker', 'tests/data/imos_bad_missing_data.nc'),
         'good_data' : resource_filename('compliance_checker', 'tests/data/imos_good_data.nc')
         }
 
@@ -40,6 +40,8 @@ class TestIMOS(unittest.TestCase):
         Initialize the dataset
         '''
         self.imos = IMOSCheck()
+        self.good_dataset = self.get_pair(static_files['good_data'])
+        self.bad_dataset = self.get_pair(static_files['bad_data'])
 
     def get_pair(self, nc_dataset):
         '''
@@ -58,28 +60,26 @@ class TestIMOS(unittest.TestCase):
     #--------------------------------------------------------------------------------
 
     def test_check_global_attributes(self):
-        dataset = self.get_pair(static_files['bad_missing_data'])
-        ret_val = self.imos.check_global_attributes(dataset)
+        ret_val = self.imos.check_global_attributes(self.bad_dataset)
 
         for result in ret_val:
             self.assertFalse(result.value)
 
-        dataset = self.get_pair(static_files["good_data"])
-        ret_val = self.imos.check_global_attributes(dataset)
+        ret_val = self.imos.check_global_attributes(self.good_dataset)
 
         for result in ret_val:
             self.assertTrue(result.value)
 
     def test_check_variable_attributes(self):
-        dataset = self.get_pair(static_files['good_data'])
-        ret_val = self.imos.check_variable_attributes(dataset)
+
+        ret_val = self.imos.check_variable_attributes(self.good_dataset)
 
         for result in ret_val:
             self.assertTrue(result.value)
 
-        dataset = self.get_pair(static_files['bad_missing_data'])
-        ret_val = self.imos.check_variable_attributes(dataset)
-        
+        ret_val = self.imos.check_variable_attributes(self.bad_dataset)
+
         for result in ret_val:
             self.assertFalse(result.value)
-
+        
+        
