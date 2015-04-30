@@ -61,9 +61,10 @@ def find_quality_control_variables(dataset):
             continue
 
         long_name = getattr(var, 'long_name', None)
-        if long_name is not None and ('status_flag' in long_name or 'quality flag' in long_name):
-            quality_control_variables.append(var)
-            continue
+        if long_name is not None and isinstance(long_name, basestring):
+            if 'status_flag' in long_name or 'quality flag' in long_name:
+                quality_control_variables.append(var)
+                continue
 
         if getattr(var, 'flag_values', None) is not None or getattr(var, 'flag_meanings', None) is not None:
             quality_control_variables.append(var)
