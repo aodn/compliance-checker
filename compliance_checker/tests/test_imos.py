@@ -163,3 +163,239 @@ class TestIMOS(unittest.TestCase):
         ret_val = self.imos.check_geospatial_lat_min_max(self.missing_dataset)
 
         self.assertTrue(len(ret_val) == 0)
+
+    def test_check_geospatial_vertical_min_max(self):
+        ret_val = self.imos.check_geospatial_vertical_min_max(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_geospatial_vertical_min_max(self.bad_dataset)
+
+        for result in ret_val:
+            if 'check_attribute_type' in result.name:
+                self.assertTrue(result.value)
+            else:
+                self.assertFalse(result.value)
+
+        ret_val = self.imos.check_geospatial_vertical_min_max(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_time_coverage(self):
+        ret_val = self.imos.check_time_coverage(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_time_coverage(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_time_coverage(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_title(self):
+        ret_val = self.imos.check_title(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_title(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_title(self.missing_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_date_created(self):
+        ret_val = self.imos.check_date_created(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_date_created(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+
+    def test_check_abstract(self):
+
+        ret_val = self.imos.check_abstract(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_abstract(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_abstract(self.missing_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_data_centre_email(self):
+        ret_val = self.imos.check_data_centre_email(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_data_centre_email(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_data_centre_email(self.missing_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_principal_investigator(self):
+        ret_val = self.imos.check_principal_investigator(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_principal_investigator(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_principal_investigator(self.missing_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_citation(self):
+        ret_val = self.imos.check_citation(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_citation(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_citation(self.missing_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_variables_long_name(self):
+        ret_val = self.imos.check_variables_long_name(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_variables_long_name(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_variables_long_name(self.missing_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_coordinate_variables(self):
+        self.imos.setup(self.good_dataset)
+
+        self.assertTrue(len(self.imos._coordinate_variables) == 1)
+
+        ret_val = self.imos.check_coordinate_variables(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+    def test_check_time_variable(self):
+        ret_val = self.imos.check_time_variable(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_time_variable(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_time_variable(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_longitude_variable(self):
+        ret_val = self.imos.check_longitude_variable(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_longitude_variable(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_longitude_variable(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_latitude_variable(self):
+        ret_val = self.imos.check_latitude_variable(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_latitude_variable(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_latitude_variable(self.missing_dataset)
+        
+        self.assertTrue(len(ret_val) == 0)
+    
+    def test_check_vertical_variable(self):
+        ret_val = self.imos.check_vertical_variable(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_vertical_variable(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_vertical_variable(self.missing_dataset)
+        
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_variable_attribute_type(self):
+        ret_val = self.imos.check_variable_attribute_type(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_variable_attribute_type(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_data_variables(self):
+        self.imos.setup(self.good_dataset)
+        ret_val = self.imos.check_data_variables(self.good_dataset)
+
+        for result in ret_val:
+            if 'check_dimension' in result.name:
+                if'LATITUDE' in result.name or 'LONGITUDE' in result.name or 'NOMINAL_DEPTH' in result.name:
+                    self.assertFalse(result.value)
+                else:
+                    self.assertTrue(result.value)
+            else:
+                self.assertTrue(result.value)
