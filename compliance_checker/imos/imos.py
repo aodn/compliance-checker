@@ -15,7 +15,8 @@ from util import is_numeric
 from util import find_ancillary_variables
 from util import find_data_variables
 from util import find_quality_control_variables
-from compliance_checker.cf.util import find_coord_vars, _possiblet, _possiblez, _possiblex, _possibley, _possibleaxis, _possiblexunits, _possibleyunits, _possibletunits, _possibleaxisunits
+from util import find_ancillary_variables_by_variable
+from compliance_checker.cf.util import find_coord_vars, units_convertible, _possibleaxis, _possibleaxisunits, _possibleaxisunits
 from types import IntType
 
 class IMOSCheck(BaseNCCheck):
@@ -32,6 +33,7 @@ class IMOSCheck(BaseNCCheck):
     OPERATOR_WITHIN = 4
     OPERATOR_DATE_FORMAT = 5
     OPERATOR_SUB_STRING = 6
+    OPERATOR_CONVERTIBLE = 7
 
     @classmethod
     def beliefs(cls):
@@ -236,6 +238,12 @@ class IMOSCheck(BaseNCCheck):
                     passed = False
                     if not reasoning:
                         reasoning = ["Required substring is not contained"]
+
+            if operator == IMOSCheck.OPERATOR_CONVERTIBLE:
+                if not units_convertible(retrieved_value, value):
+                    passed = False
+                    if not reasoning:    
+                        reasoning = ["Value is not convertible"]
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
 
@@ -1041,7 +1049,7 @@ class IMOSCheck(BaseNCCheck):
             valid_min exist
             valid_max exists
             reference_datum is a string type
-
+            unit
         """
         ret_val = []
 
@@ -1083,7 +1091,7 @@ class IMOSCheck(BaseNCCheck):
                               IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
                               result_name,
                               BaseCheck.HIGH)
- 
+
             result4 = self._check_value(('VERTICAL','positive',),
                               'up',
                               IMOSCheck.OPERATOR_EQUAL, ds,
@@ -1140,6 +1148,20 @@ class IMOSCheck(BaseNCCheck):
                                         BaseCheck.HIGH)
 
             ret_val.append(result)
+
+            result_name = ('var', 'VERTICAL', 'units', 'check_attributes')
+            reasoning = ["units is not a valid CF distance unit"]
+            result = self._check_value(('VERTICAL','units',),
+                                        'meter',
+                                        IMOSCheck.OPERATOR_CONVERTIBLE,
+                                        ds,
+                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                        result_name,
+                                        BaseCheck.HIGH,
+                                        reasoning)
+
+            ret_val.append(result)
+
         return ret_val
 
     def check_variable_attribute_type(self, ds):
@@ -1282,4 +1304,45 @@ class IMOSCheck(BaseNCCheck):
                 if result is not None:
                     ret_val.append(result)
 
+        return ret_val
+
+    def check_quality_variable_dimensions(self, ds):
+        """
+        Check quality variable has same dimensions as the related data variable.
+        """
+        ret_val = []
+        for qc_variable in self._quality_control_variables:
+            for data_variable in self._data_variables:
+                ancillary_variables = find_ancillary_variables_by_variable(ds.dataset, data_variable)
+                if qc_variable in ancillary_variables:
+                    result_name = ('var', 'quality_variable', qc_variable.name, data_variable.name, 'check_dimension')
+                    if data_variable.dimensions == qc_variable.dimensions:
+                        result = Result(BaseCheck.HIGH, True, result_name, None)
+                    else:
+                        reasoning = ["Dimension is not same"]
+                        result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                    
+                    ret_val.append(result)
+
+        return ret_val
+
+    def check_quality_variable_standard_name(self, ds):
+        """
+        Check quality variable standard name.
+        """
+        ret_val = []
+
+        for qc_variable in self._quality_control_variables:
+            for data_variable in self._data_variables:
+                ancillary_variables = find_ancillary_variables_by_variable(ds.dataset, data_variable)
+                if qc_variable in ancillary_variables:
+                    value = getattr(data_variable, 'standard_name') + ' ' + 'status_flag'
+                    result_name = ('var', 'quality_variable', qc_variable.name, data_variable.name, 'check_standard_name')
+                    if getattr(qc_variable, 'standard_name') != value:
+                        reasoning = ["Standard is not corrent"]
+                        result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                    else:
+                        result = Result(BaseCheck.HIGH, True, result_name, None)
+
+                    ret_val.append(result)
         return ret_val
