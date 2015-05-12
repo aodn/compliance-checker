@@ -5,6 +5,7 @@ from compliance_checker.cf import CFBaseCheck
 from compliance_checker.ioos import IOOSBaseCheck
 from compliance_checker.suite import CheckSuite
 from compliance_checker.glider_dac import GliderCheck
+from compliance_checker.imos import IMOSFileNameCheck
 
 class ComplianceCheckerCheckSuite(CheckSuite):
     """
@@ -14,7 +15,8 @@ class ComplianceCheckerCheckSuite(CheckSuite):
         'cf'        : CFBaseCheck,
         'acdd'      : ACDDBaseCheck,
         'ioos'      : IOOSBaseCheck,
-        'gliderdac' : GliderCheck
+        'gliderdac' : GliderCheck,
+        'imos-file-name' : IMOSFileNameCheck
     }
 
 class ComplianceChecker(object):
@@ -40,7 +42,7 @@ class ComplianceChecker(object):
 
         cs = ComplianceCheckerCheckSuite()
         ds = cs.load_dataset(ds_loc)
-        score_groups = cs.run(ds, *checker_names)
+        score_groups = cs.run(ds, ds_loc, *checker_names)
 
         if criteria == 'normal':
             limit = 2
