@@ -31,9 +31,10 @@ class DSPair(object):
     """
     dataset = None
     dogma   = None
-    def __init__(self, ds, dogma):
+    def __init__(self, ds, dogma, ds_loc=None):
         self.dataset = ds
         self.dogma = dogma
+        self.ds_loc = ds_loc
 
 class BaseCheck(object):
     HIGH   = 3
@@ -68,14 +69,14 @@ class BaseNCCheck(object):
     """
     supported_ds = [Dataset]
 
-    def load_datapair(self, ds):
+    def load_datapair(self, ds, ds_loc):
         # allow ncml as well as nc prefixes
         namespaces         = pb_namespaces.copy()
         namespaces['nc']   = namespaces['ncml']
         namespaces['ncml'] = namespaces['ncml']
 
         data_object = NetCDFDogma('ds', self.beliefs(), ds, namespaces=namespaces)
-        return DSPair(ds, data_object)
+        return DSPair(ds, data_object, ds_loc)
 
 class BaseSOSGCCheck(object):
     """

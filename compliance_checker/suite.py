@@ -63,7 +63,7 @@ class CheckSuite(object):
 
         return valid
 
-    def run(self, ds, *checker_names):
+    def run(self, ds, ds_loc, *checker_names):
         """
         Runs this CheckSuite on the dataset with all the passed Checker instances.
 
@@ -81,7 +81,7 @@ class CheckSuite(object):
         for checker_name, checker_class in checkers:
 
             checker            = checker_class()   # @TODO: combine with load_datapair/setup
-            dsp                = checker.load_datapair(ds)
+            dsp                = checker.load_datapair(ds, ds_loc)
             checker.setup(dsp)
 
             checks             = self._get_checks(checker)
@@ -350,7 +350,7 @@ class CheckSuite(object):
                 raise StandardError("Unrecognized XML root element: %s" % xml_doc.tag)
         else:
             # no doc? try the dataset constructor
-            ds = Dataset(ds_str)
+            ds = Dataset(ds_str) 
 
         return ds
 
