@@ -30,3 +30,32 @@ class IMOSFileNameCheck(BaseNCCheck):
             self._file_name = '.'.join([file_names[i] for i in xrange(-1, -(file_names_length+1), -1) if not i == -1])
             self._file_extension_name = file_names[-1]
 
+    def check_extension_name(self, ds):
+        ret_val = []
+        result_name = ['file_name','extension_name']
+        reasoning = ["File extension name is not equal to nc"]
+
+        if not self._file_extension_name == 'nc':
+            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+        else:
+            result = Result(BaseCheck.HIGH, True, result_name, None)
+
+        ret_val.append(result)
+
+        return ret_val
+
+    def check_file_name(self, ds):
+        ret_val = []
+        result_name = ['file_name','name']
+        reasoning = ["File name doesn't contain 6 to 10 fields, separated by '_'"]
+
+        file_names = [ name for name in self._file_extension_name.split('_') ]
+
+        if len(file_names) >= 6 and len(file_names) <= 10:
+            result = Result(BaseCheck.HIGH, True, result_name, None)
+        else:
+            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+
+        ret_val.append(result)
+
+        return ret_val
