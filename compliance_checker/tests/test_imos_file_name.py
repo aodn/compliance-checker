@@ -40,10 +40,10 @@ class TestIMOSFileName(unittest.TestCase):
         '''
         self.check = IMOSFileNameCheck()
         self._good_dataset = self.get_pair(static_files['file_name'])
-        self._good_dataset.ds_loc = 'part1_part2_part3_part4_part5_part6_part7.nc'
-        
+        self._good_dataset.ds_loc = 'IMOS_part2_RFK_part4_part5_part6_part7.nc'
+
         self._bad_dataset = self.get_pair(static_files['file_name'])
-        self._bad_dataset.ds_loc = 'part1.abc'
+        self._bad_dataset.ds_loc = 'part1_part2_ABD.abc'
 
     def get_pair(self, nc_dataset_loc):
         '''
@@ -90,6 +90,37 @@ class TestIMOSFileName(unittest.TestCase):
         self.check.setup(self._bad_dataset)
 
         ret_val = self.check.check_file_name(self._bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_file_name_field1(self):
+        self.check.setup(self._good_dataset)
+
+        ret_val = self.check.check_file_name_field1(self._good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+
+        self.check.setup(self._bad_dataset)
+
+        ret_val = self.check.check_file_name_field1(self._bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+    def test_check_file_name_field3(self):
+        self.check.setup(self._good_dataset)
+
+        ret_val = self.check.check_file_name_field3(self._good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        self.check.setup(self._bad_dataset)
+
+        ret_val = self.check.check_file_name_field3(self._bad_dataset)
 
         for result in ret_val:
             self.assertFalse(result.value)
