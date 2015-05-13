@@ -109,12 +109,40 @@ class IMOSFileNameCheck(BaseNCCheck):
 
         return ret_val
 
+    def check_file_name_field4(self, ds):
+        '''
+        Check file name field4 matches time_coverage_start attribute.
+        '''
+        ret_val = []
+        result_name = ['file_name','check_file_name_field4']
+        reasoning = ["File name field4 doesn't match time_coverage_start attribute"]
+
+        time_coverage_start = getattr(ds.dataset, 'ttime_coverage_start', None)
+        passed = False
+        if time_coverage_start is not None:
+            if self._file_names_length >= 4:
+                field4 = self._file_names[3]
+                if field4 != time_coverage_start:
+                    passed = False
+                else:
+                    passed = True
+
+            if passed:
+                result = Result(BaseCheck.HIGH, True, result_name, None)
+            else:
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+
+            ret_val.append(result)
+
+        return ret_val
+
+
     def check_file_name_field6(self, ds):
         '''
         Check file name field6 is one of FV00, FV01, FV02 and consistent with
         file_version attribute, if it exists.
         Field should be 'FV0X' where file_version starts with 'LEVEL X'
-        ''' 
+        '''
         ret_val = []
         result_name = ['file_name','check_file_name_field6']
         reasoning = ["File name field6 is not one of FV00, FV01, FV02"]
@@ -122,7 +150,7 @@ class IMOSFileNameCheck(BaseNCCheck):
         file_version = getattr(ds.dataset, 'file_version', None)
         passed = False
         if file_version is not None:
-            file_version_splits = [split for split in file_version.split(' ')] 
+            file_version_splits = [split for split in file_version.split(' ')]
 
             if len(file_version_splits) >= 2:
                 if self._file_names_length >= 6:
