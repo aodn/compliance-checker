@@ -146,32 +146,39 @@ class IMOSFileNameCheck(BaseNCCheck):
         ret_val = []
         result_name = ['file_name','check_file_name_field6']
         reasoning = ["File name field6 is not one of FV00, FV01, FV02"]
-
-        file_version = getattr(ds.dataset, 'file_version', None)
+        skip = False
         passed = False
-        if file_version is not None:
-            file_version_splits = [split for split in file_version.split(' ')]
+        if self._file_names_length >= 6:
+            field6 = self._file_names[5]
+            if field6 == 'FV00' or field6 == 'FV01' or field6 == 'FV02':
+                passed = True
 
-            if len(file_version_splits) >= 2:
-                if self._file_names_length >= 6:
-                    field6 = self._file_names[5]
-                    if len(field6) != 4:
-                        passed = False
-                    else:
-                        if field6 == 'FV00' or field6 == 'FV01' or field6 == 'FV02':
-                            if field6[3] == file_version_splits[1]:
-                                passed = True
-                            else:
-                                passed = False
+                file_version = getattr(ds.dataset, 'file_version', None)
+
+                if file_version is not None:
+                    passed = False
+                    file_version_splits = [split for split in file_version.split(' ')]
+
+                    if len(file_version_splits) >= 2:
+                        if field6[3] == file_version_splits[1]:
+                            passed = True
                         else:
                             passed = False
+                    else:
+                        passed = False
                 else:
-                    passed = False
+                    skip = True
+            else:
+                passed = False
+        else:
+            passed = False
 
-                if passed:
-                    result = Result(BaseCheck.HIGH, True, result_name, None)
-                else:
-                    result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+        if not skip:
+            if passed:
+                result = Result(BaseCheck.HIGH, True, result_name, None)
+            else:
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
 
-                ret_val.append(result)
+        ret_val.append(result)
+
         return ret_val
