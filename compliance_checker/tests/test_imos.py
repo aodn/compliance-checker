@@ -419,6 +419,36 @@ class TestIMOS(unittest.TestCase):
 
         self.assertTrue(ret_val != None)
         self.assertTrue(len(ret_val) > 0)
-    
+
         self.assertTrue(ret_val[0].value)
         self.assertFalse(ret_val[1].value)
+
+    def test_check_geospatial_lat_units(self):
+        ret_val = self.imos.check_geospatial_lat_units(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_geospatial_lat_units(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_vertical_variable(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_geospatial_lon_units(self):
+        ret_val = self.imos.check_geospatial_lon_units(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_geospatial_lon_units(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_geospatial_lon_units(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
