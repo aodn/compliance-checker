@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 def is_monotonic(x):
     """
@@ -6,6 +7,16 @@ def is_monotonic(x):
     """
     dx = np.diff(x)
     return np.all(dx <= 0) or np.all(dx >= 0)
+
+def is_valid_email(email):
+    """Email validation, checks for syntactically invalid email"""
+
+    emailregex = "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3\})(\\]?)$"
+
+    if re.match(emailregex, email) != None:
+        return True
+
+    return False
 
 def is_numeric(variable_type):
     """
