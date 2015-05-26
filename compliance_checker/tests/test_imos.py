@@ -452,3 +452,48 @@ class TestIMOS(unittest.TestCase):
         ret_val = self.imos.check_geospatial_lon_units(self.missing_dataset)
 
         self.assertTrue(len(ret_val) == 0)
+
+    def test_check_geospatial_vertical_positive(self):
+        ret_val = self.imos.check_geospatial_vertical_positive(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_geospatial_vertical_positive(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_geospatial_vertical_positive(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_author_email(self):
+        ret_val = self.imos.check_author_email(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_author_email(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_author_email(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_principal_investigator_email(self):
+        ret_val = self.imos.check_principal_investigator_email(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_principal_investigator_email(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_principal_investigator_email(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)

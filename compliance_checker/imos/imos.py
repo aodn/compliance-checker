@@ -16,6 +16,7 @@ from util import find_ancillary_variables
 from util import find_data_variables
 from util import find_quality_control_variables
 from util import find_ancillary_variables_by_variable
+from util import is_valid_email
 from compliance_checker.cf.util import find_coord_vars, units_convertible, _possibleaxis, _possibleaxisunits, _possibleaxisunits
 from types import IntType
 
@@ -34,6 +35,7 @@ class IMOSCheck(BaseNCCheck):
     OPERATOR_DATE_FORMAT = 5
     OPERATOR_SUB_STRING = 6
     OPERATOR_CONVERTIBLE = 7
+    OPERATOR_EMAIL = 8
 
     @classmethod
     def beliefs(cls):
@@ -242,8 +244,14 @@ class IMOSCheck(BaseNCCheck):
             if operator == IMOSCheck.OPERATOR_CONVERTIBLE:
                 if not units_convertible(retrieved_value, value):
                     passed = False
-                    if not reasoning:    
+                    if not reasoning:
                         reasoning = ["Value is not convertible"]
+
+            if operator == IMOSCheck.OPERATOR_EMAIL:
+                if not is_valid_email(retrieved_value):
+                    passed = False
+                    if not reasoning:
+                        reasoning = ["Value is not a valid email"]
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
 
@@ -1373,7 +1381,7 @@ class IMOSCheck(BaseNCCheck):
 
     def check_geospatial_lon_units(self, ds):
         """
-        Check geospatial_lon_units global attribute and the value is 'degrees_east,
+        Check geospatial_lon_units global attribute and the value is 'degrees_east',
         if exists
         """
         ret_val = []
@@ -1390,6 +1398,94 @@ class IMOSCheck(BaseNCCheck):
                                     None,
                                     True)
 
+        if result is not None:
+            ret_val.append(result)
+
+        return ret_val
+
+    def check_geospatial_vertical_positive(self, ds):
+        """
+        Check geospatial_vertical_positive global attribute and the value is 'up' or 'down',
+        if exists
+        """        
+        ret_val = []
+
+        result_name = ('globalattr', 'geospatial_vertical_positive','check_attributes')
+
+        result = self._check_present(("geospatial_vertical_positive",),
+                            ds,
+                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                            result_name,
+                            BaseCheck.MEDIUM)
+
+        if result.value:
+            result1 = self._check_value(("geospatial_vertical_positive",),
+                                    "up",
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM)
+
+            result2 = self._check_value(("geospatial_vertical_positive",),
+                                    "down",
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM)
+            result = None
+            reasoning = ["value is not equal to up or down"]
+            if result1.value or result2.value:
+                result = Result(BaseCheck.HIGH, True, result_name, None)
+            else:
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+
+            ret_val.append(result)
+
+        return ret_val
+
+    def check_author_email(self, ds):
+        """
+        Check value of author_email global attribute is valid email address,
+        if exists
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'author_email','check_attributes')
+
+        result = self._check_value(("author_email",),
+                                    "",
+                                    IMOSCheck.OPERATOR_EMAIL,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM,
+                                    None,
+                                    True)
+        if result is not None:
+            ret_val.append(result)
+
+        return ret_val
+
+    def check_principal_investigator_email(self, ds):
+        """
+        Check value of principal_investigator_email global attribute is valid email address,
+        if exists
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'principal_investigator_email','check_attributes')
+
+        result = self._check_value(("principal_investigator_email",),
+                                    "",
+                                    IMOSCheck.OPERATOR_EMAIL,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM,
+                                    None,
+                                    True)
         if result is not None:
             ret_val.append(result)
 
