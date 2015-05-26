@@ -1346,3 +1346,51 @@ class IMOSCheck(BaseNCCheck):
 
                     ret_val.append(result)
         return ret_val
+
+    def check_geospatial_lat_units(self, ds):
+        """
+        Check geospatial_lat_units global attribute and the value is 'degrees_north,
+        if exists
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'geospatial_lat_units','check_attributes')
+
+        result = self._check_value(("geospatial_lat_units",),
+                                    "degrees_north",
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM,
+                                    None,
+                                    True)
+
+        if result is not None:
+            ret_val.append(result)
+
+        return ret_val
+
+    def check_geospatial_lon_units(self, ds):
+        """
+        Check geospatial_lon_units global attribute and the value is 'degrees_east,
+        if exists
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'geospatial_lon_units','check_attributes')
+
+        result = self._check_value(("geospatial_lon_units",),
+                                    "degrees_east",
+                                    IMOSCheck.OPERATOR_EQUAL,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM,
+                                    None,
+                                    True)
+
+        if result is not None:
+            ret_val.append(result)
+
+        return ret_val
