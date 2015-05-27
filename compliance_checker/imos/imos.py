@@ -253,6 +253,12 @@ class IMOSCheck(BaseNCCheck):
                     if not reasoning:
                         reasoning = ["Value is not a valid email"]
 
+            if operator == IMOSCheck.OPERATOR_WITHIN:
+                if retrieved_value not in value:
+                    passed = False
+                    if not reasoning:
+                        reasoning = ["Value is not in the expected range"]
+
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
 
         else:
@@ -1486,6 +1492,78 @@ class IMOSCheck(BaseNCCheck):
                                     BaseCheck.MEDIUM,
                                     None,
                                     True)
+        if result is not None:
+            ret_val.append(result)
+
+        return ret_val
+
+    def check_quality_control_set(self, ds):
+        """
+        Check value of quality_control_set global attribute is one of (1,2,3,4),
+        if exists
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'quality_control_set','check_attributes')
+
+        result = self._check_value(("quality_control_set",),
+                                    [1,2,3,4],
+                                    IMOSCheck.OPERATOR_WITHIN,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM,
+                                    None,
+                                    True)
+        if result is not None:
+            ret_val.append(result)
+
+        return ret_val
+    
+    def check_local_time_zone(self, ds):
+        """
+        Check value of local time zone global attribute is between -12 and 12,
+        if exists
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'local_time_zone','check_attributes')
+
+        value = [i for i in range(-12, 13)]
+
+        result = self._check_value(("local_time_zone",),
+                                    value,
+                                    IMOSCheck.OPERATOR_WITHIN,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM,
+                                    None,
+                                    True)
+        if result is not None:
+            ret_val.append(result)
+
+        return ret_val
+
+    def check_geospatial_vertical_units(self, ds):
+        """
+        Check value of lgeospatial_vertical_units global attribute is valid CF depth
+        unit, if exists
+        """
+        ret_val = []
+        result_name = ('var', 'geospatial_vertical_units','check_attributes')
+        reasoning = ["units is not a valid CF depth unit"]
+
+        result = self._check_value(('geospatial_vertical_units',),
+                                        'meter',
+                                        IMOSCheck.OPERATOR_CONVERTIBLE,
+                                        ds,
+                                        IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                        result_name,
+                                        BaseCheck.HIGH,
+                                        reasoning,
+                                        True)
+
         if result is not None:
             ret_val.append(result)
 

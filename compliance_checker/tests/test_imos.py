@@ -497,3 +497,48 @@ class TestIMOS(unittest.TestCase):
         ret_val = self.imos.check_principal_investigator_email(self.missing_dataset)
 
         self.assertTrue(len(ret_val) == 0)
+
+    def test_check_quality_control_set(self):
+        ret_val = self.imos.check_quality_control_set(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_quality_control_set(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_quality_control_set(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_local_time_zone(self):
+        ret_val = self.imos.check_local_time_zone(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_local_time_zone(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_local_time_zone(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
+
+    def test_check_geospatial_vertical_units(self):
+        ret_val = self.imos.check_geospatial_vertical_units(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_geospatial_vertical_units(self.bad_dataset)
+
+        for result in ret_val:
+            self.assertFalse(result.value)
+
+        ret_val = self.imos.check_geospatial_vertical_units(self.missing_dataset)
+
+        self.assertTrue(len(ret_val) == 0)
