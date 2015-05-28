@@ -5,6 +5,7 @@ http://www.imos.org.au/
 '''
 
 import os.path
+import datetime
 import re
 
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
@@ -180,5 +181,67 @@ class IMOSFileNameCheck(BaseNCCheck):
                 result = Result(BaseCheck.HIGH, False, result_name, reasoning)
 
         ret_val.append(result)
+
+        return ret_val
+
+    def check_file_name_field7_to_field10(self, ds):
+        '''
+        Check file name field7 to filed 10 to meet one of the below conditions:
+        1) is a non-empty string (product type)
+        2) matches time_coverage_end attribute, format "END-YYYYMMDDTHHMMSSZ"
+        3) matches date_created attribute, format "C-YYYYMMDDTHHMMSSZ"
+        4) matches regexp "PART\d+"
+        
+        Each condition must only match one field.
+        '''
+        ret_val = []
+        result = None
+        result_name = ['file_name','check_file_name_field7_to_field10']
+        reasoning = ["Some of values from filed 7 to filed 10 are not correct"]
+        success = [None, None, None, None]
+
+        for i in range(6, self._file_names_length):
+            field = self._file_names[i]
+
+            try:
+                if field.startswith('END-'):
+                    field_date = field[4:]
+                    datetime.datetime.strptime(field_date, '%Y%m%dT%H%M%SZ')
+
+                    if success[0] == None:
+                        success[0] = True
+                        continue
+
+                if field.startswith('C-'):
+                    field_date = field[2:]
+                    datetime.datetime.strptime(field_date, '%Y%m%dT%H%M%SZ')
+
+                    if success[1] == None:
+                        success[1] = True
+                        continue
+
+            except ValueError:
+                pass
+
+            pattern = r'^PART\d+'
+            if re.search(pattern,  field):
+                if success[2] == None:
+                    success[2] = True
+                    continue
+
+            if isinstance(field, basestring):
+                if field and not field.isdigit():
+                    if success[3] == None:
+                        success[3] = True
+                        continue
+
+        if self._file_names_length > 6:
+            trues = [suc for suc in success if suc]
+            if len(trues) == self._file_names_length-6:
+                result = Result(BaseCheck.HIGH, True, result_name, None)
+            else:
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+
+            ret_val.append(result)
 
         return ret_val
