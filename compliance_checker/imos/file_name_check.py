@@ -8,7 +8,21 @@ import os.path
 import datetime
 import re
 
+import yaml
+from pkg_resources import resource_filename
+
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
+
+
+# Initial reference tables for file name check up
+facility_code_file = resource_filename('compliance_checker', 'imos/facility_code.yml')
+stream = file(facility_code_file, 'r')    # 'document.yaml' contains a single YAML document.
+facility_code_list = yaml.load(stream)
+
+platform_code_file = resource_filename('compliance_checker', 'imos/platform_code.yml')
+stream = file(facility_code_file, 'r')    # 'document.yaml' contains a single YAML document.
+platform_code_list = yaml.load(stream)
+
 
 class IMOSFileNameCheck(BaseNCCheck):
 
@@ -34,6 +48,7 @@ class IMOSFileNameCheck(BaseNCCheck):
         
         self._file_names = [ name for name in self._file_name.split('_') ]
         self._file_names_length = len(self._file_names)
+
 
     def check_extension_name(self, ds):
         '''
@@ -90,6 +105,25 @@ class IMOSFileNameCheck(BaseNCCheck):
 
         return ret_val
 
+    def check_file_name_field2(self, ds):
+        '''
+        Check file name field2 and ensure it is valid facility, sub facility code
+        '''
+        ret_val = []
+        result_name = ['file_name','check_file_name_field2']
+        reasoning = ["File name field2 is not valid facility, sub facility code'"]
+
+        if self._file_names_length >= 2:
+            if self._file_names[1] not in facility_code_list:
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+            else:
+                result = Result(BaseCheck.HIGH, True, result_name, None)
+        else:
+            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+
+        ret_val.append(result)
+        return ret_val
+
     def check_file_name_field3(self, ds):
         '''
         Check file name field3 and ensure it is made up of the characters "ABCEFGIKMOPRSTUVWZ"
@@ -98,7 +132,7 @@ class IMOSFileNameCheck(BaseNCCheck):
         result_name = ['file_name','check_file_name_field3']
         reasoning = ["File name field3 is not made up of characters 'ABCEFGIKMOPRSTUVWZ'"]
 
-        if self._file_names_length >= 2:
+        if self._file_names_length >= 3:
             if re.search('^[ABCEFGIKMOPRSTUVWZ]+$', self._file_names[2]) == None:
                 result = Result(BaseCheck.HIGH, False, result_name, reasoning)
             else:
