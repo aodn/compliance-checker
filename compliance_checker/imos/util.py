@@ -57,10 +57,22 @@ def find_ancillary_variables(dataset):
     return ancillary_variables
 
 def find_data_variables(dataset, coordinate_variables, ancillary_variables):
+    """
+        Finds all variables that could be considered Data variables.
+
+        Returns a dictionary mapping name -> variable.
+
+        Excludes variables that are:
+            - coordinate variables
+            - ancillary variables
+            - no dimensions
+
+        Results are NOT CACHED.
+        """
     data_variables = []
 
     for name, var in dataset.variables.iteritems():
-        if var not in coordinate_variables and var not in ancillary_variables:
+        if var not in coordinate_variables and var not in ancillary_variables and var.dimensions:
             data_variables.append(var)
 
     return data_variables
