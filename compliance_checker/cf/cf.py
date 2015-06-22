@@ -2363,7 +2363,6 @@ class CFBaseCheck(BaseCheck):
         
         ret_val = []
         reasoning = []
-        names = list(ds.dataset.variables.iterkeys())
         for name, var in ds.dataset.variables.iteritems():
             if hasattr(var, 'add_offset') or hasattr(var, 'scale_factor'):
                 valid = False
@@ -2372,12 +2371,20 @@ class CFBaseCheck(BaseCheck):
                     scale = getattr(var, 'scale_factor', '')
 
                     data_size = np.s_[ds.dataset.variables[name].size]
-                    data_type_check = np.reshape(ds.dataset.variables[name],data_size)[0]
+
+                    reshaped_var = np.reshape(ds.dataset.variables[name],data_size)
+                                        
+                    data_type_check = reshaped_var[0]
+                    
+                    non_masked_value = next((index for index in xrange(data_size) if type(reshaped_var[index]) != 'numpy.ma.core.MaskedConstant'), None)
+
+                    if non_masked_value:
+                        data_type_check = non_masked_value
+                        x = reshaped_var.index(non_masked_value)
+                    else:
+                        x = data_size - 1
+
                     #, type(ds.dataset.variables[name][0,0,0]) ,type(scale), type(offset)
-                    for x in xrange(data_size):
-                        if type(np.reshape(ds.dataset.variables[name],data_size)[x]) != 'numpy.ma.core.MaskedConstant':
-                            data_type_check = np.reshape(ds.dataset.variables[name],data_size)[x]
-                            break
                     if type(data_type_check) == type(scale) == type(offset):
                         valid = True
                         result = Result(BaseCheck.MEDIUM,                            \
@@ -2386,25 +2393,25 @@ class CFBaseCheck(BaseCheck):
                                 reasoning)
                         ret_val.append(result)
                         reasoning = []
-                    elif type(scale) == type(offset) != type(np.reshape(ds.dataset.variables[name],data_size)[x]):
-                        if type(scale) in [float(), type(np.float32(1.)), int(), type(np.int16(1))]  and (type(np.reshape(ds.dataset.variables[name],data_size)[x])) in [type(np.int8(1)), type(np.int16(1)), int()]:
-                           valid = True
-                           result = Result(BaseCheck.MEDIUM,                            \
+                    elif type(scale) == type(offset) != type(reshaped_var[x]):
+                        if type(scale) in [float(), type(np.float32(1.)), int(), type(np.int16(1))]  and (type(reshaped_var[x])) in [type(np.int8(1)), type(np.int16(1)), int()]:
+                            valid = True
+                            result = Result(BaseCheck.MEDIUM,                            \
                                 valid,                                       \
                                 ('var', name, 'packed_data'), \
                                 reasoning)
-                           ret_val.append(result)
-                           reasoning = []
+                            ret_val.append(result)
+                            reasoning = []
                         else: 
-                           valid = False
+                            valid = False
 
-                           reasoning.append("'add_offset' and 'scale_factor' are not of type float or int, or the data variable is not of type byte, short, or int.")
-                           result = Result(BaseCheck.MEDIUM,                            \
+                            reasoning.append("'add_offset' and 'scale_factor' are not of type float or int, or the data variable is not of type byte, short, or int.")
+                            result = Result(BaseCheck.MEDIUM,                            \
                                 valid,                                       \
                                 ('var', name, 'packed_data'), \
                                 reasoning)
-                           ret_val.append(result) 
-                           reasoning = []    
+                            ret_val.append(result) 
+                            reasoning = []    
                     else:
                         valid = False
                         reasoning.append("'add_offset' and 'scale_factor' are not both of type float or int or the data variable is not of type byte, short, or int.")
@@ -2415,11 +2422,7 @@ class CFBaseCheck(BaseCheck):
                         ret_val.append(result) 
                         reasoning = []
 
-
-
         return ret_val
-
-        
 
     def check_compression(self, ds):
         """
