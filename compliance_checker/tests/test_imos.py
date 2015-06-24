@@ -360,9 +360,9 @@ class TestIMOS(unittest.TestCase):
             self.assertFalse(result.value)
 
         ret_val = self.imos.check_latitude_variable(self.missing_dataset)
-        
+
         self.assertTrue(len(ret_val) == 0)
-    
+
     def test_check_vertical_variable(self):
         ret_val = self.imos.check_vertical_variable(self.good_dataset)
 
@@ -375,7 +375,7 @@ class TestIMOS(unittest.TestCase):
             self.assertFalse(result.value)
 
         ret_val = self.imos.check_vertical_variable(self.missing_dataset)
-        
+
         self.assertTrue(len(ret_val) == 0)
 
     def test_check_variable_attribute_type(self):
