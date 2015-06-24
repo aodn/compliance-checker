@@ -37,6 +37,26 @@ def is_numeric(variable_type):
 
     return False
 
+
+def find_variables_from_attribute(dataset, variable, attribute_name):
+    variables = []
+    variable_names = getattr(variable, attribute_name, None)
+
+    if variable_names is not None:
+        for variable_name in variable_names.split(' '):
+            variable = dataset.variables[variable_name]
+            variables.append(variable)
+
+    return variables
+
+def find_auxiliary_coordinate_variables(dataset):
+    auxiliary_coordinate_variables = []
+
+    for name, var in dataset.variables.iteritems():
+        auxiliary_coordinate_variables.extend(find_variables_from_attribute(dataset, var, 'coordinates'))
+
+    return auxiliary_coordinate_variables
+
 def find_ancillary_variables_by_variable(dataset, variable):
     ancillary_variables = []
     ancillary_variable_names = getattr(variable, 'ancillary_variables', None)
@@ -52,7 +72,7 @@ def find_ancillary_variables(dataset):
     ancillary_variables = []
 
     for name, var in dataset.variables.iteritems():
-        ancillary_variables.extend(find_ancillary_variables_by_variable(dataset, var))
+        ancillary_variables.extend(find_variables_from_attribute(dataset, var, 'ancillary_variables'))
 
     return ancillary_variables
 
@@ -70,9 +90,10 @@ def find_data_variables(dataset, coordinate_variables, ancillary_variables):
         Results are NOT CACHED.
         """
     data_variables = []
+    auxiliary_coordinate_variables = find_auxiliary_coordinate_variables(dataset)
 
     for name, var in dataset.variables.iteritems():
-        if var not in coordinate_variables and var not in ancillary_variables and var.dimensions:
+        if var not in coordinate_variables and var not in ancillary_variables and var.dimensions and var not in auxiliary_coordinate_variables:
             data_variables.append(var)
 
     return data_variables
