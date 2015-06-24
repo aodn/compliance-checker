@@ -332,6 +332,9 @@ class IMOSCheck(BaseNCCheck):
             if check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
                 attribute_value = getattr(ds.dataset.variables[name[0]], name[1])
 
+            if check_type == IMOSCheck.CHECK_VARIABLE:
+                attribute_value = ds.dataset.variables[name[0]]
+
             dtype = getattr(attribute_value, 'dtype', None)
             passed = True
 
@@ -804,6 +807,7 @@ class IMOSCheck(BaseNCCheck):
             axis
             valid_min
             valid_max
+            type
         """
         ret_val = []
 
@@ -870,6 +874,20 @@ class IMOSCheck(BaseNCCheck):
                                         BaseCheck.HIGH)
 
             ret_val.append(result)
+
+            result_name = ('var', 'TIME','check_variable_type')
+            reasoning = ["The Type of variable TIME is not Double"]
+
+            result = self._check_attribute_type(('TIME',),
+                                            np.float64,
+                                            ds,
+                                            IMOSCheck.CHECK_VARIABLE,
+                                            result_name,
+                                            BaseCheck.HIGH,
+                                            reasoning)
+            
+            if result is not None:
+                ret_val.append(result)
 
         return ret_val
 
