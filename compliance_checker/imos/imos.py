@@ -1409,6 +1409,28 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
+    def check_quality_control_set_for_quality_control_variable(self, ds):
+        """
+        Check value of quality_control_set attribute is one of (1,2,3,4),
+        for quality control variables
+        """
+        ret_val = []
+
+        for qc_variable in self._quality_control_variables:
+            result_name = ('var', 'quality_variable', qc_variable.name, 'check_attributes')    
+            result = self._check_value((qc_variable.name,'quality_control_set',),
+                                    [1,2,3,4],
+                                    IMOSCheck.OPERATOR_WITHIN,
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.MEDIUM)
+
+            if result is not None:
+                ret_val.append(result)
+
+        return ret_val
+
     def check_quality_variable_dimensions(self, ds):
         """
         Check quality variable has same dimensions as the related data variable.
