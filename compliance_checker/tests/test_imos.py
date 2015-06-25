@@ -422,6 +422,16 @@ class TestIMOS(unittest.TestCase):
         self.assertTrue(ret_val[0].value)
         self.assertTrue(ret_val[1].value)
 
+    def test_check_quality_control_set_for_quality_control_variable(self):
+        self.imos.setup(self.test_variable_dataset)
+        ret_val = self.imos.check_quality_control_set_for_quality_control_variable(self.test_variable_dataset)
+
+        self.assertTrue(ret_val != None)
+        self.assertTrue(len(ret_val) == 2)
+
+        self.assertTrue(ret_val[0].value)
+        self.assertFalse(ret_val[1].value)
+
     def test_check_quality_variable_standard_name(self):
         self.imos.setup(self.test_variable_dataset)
 
