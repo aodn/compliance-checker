@@ -1471,6 +1471,27 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
+    def check_quality_control_variable_listed(self, ds):
+        """
+        Check quality control variable is listed in the related data variable's
+        ancillary_variables attribute.
+        """
+        ret_val = []
+
+        for data_variable in self._data_variables:
+            ancillary_variables = find_ancillary_variables_by_variable(ds.dataset, data_variable)
+            for ancillary_variable in ancillary_variables:
+                result_name = ('var', 'quality_variable', ancillary_variable.name, data_variable.name, 'check_listed')
+                if ancillary_variable in self._quality_control_variables:
+                    result = Result(BaseCheck.HIGH, True, result_name, None)
+                else:
+                    reasoning = ["Quality variable is not listed in the data variable's ancillary_variables attribute"]
+                    result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+
+                ret_val.append(result)
+
+        return ret_val
+
     def check_quality_variable_standard_name(self, ds):
         """
         Check quality variable standard name.
