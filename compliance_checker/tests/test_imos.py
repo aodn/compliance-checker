@@ -18,6 +18,7 @@ static_files = {
         'good_data' : resource_filename('compliance_checker', 'tests/data/imos_good_data.nc'),
         'missing_data' : resource_filename('compliance_checker', 'tests/data/imos_missing_data.nc'),
         'test_variable' : resource_filename('compliance_checker', 'tests/data/imos_variable_test.nc'),
+        'data_var' : resource_filename('compliance_checker', 'tests/data/imos_data_var.nc'),
         }
 
 class TestIMOS(unittest.TestCase):
@@ -46,6 +47,7 @@ class TestIMOS(unittest.TestCase):
         self.bad_dataset = self.get_pair(static_files['bad_data'])
         self.missing_dataset = self.get_pair(static_files['missing_data'])
         self.test_variable_dataset = self.get_pair(static_files['test_variable'])
+        self.data_variable_dataset = self.get_pair(static_files['data_var'])
 
     def get_pair(self, nc_dataset):
         '''
@@ -388,6 +390,12 @@ class TestIMOS(unittest.TestCase):
 
         for result in ret_val:
             self.assertFalse(result.value)
+
+    def test_data_variable_list(self):
+        self.imos.setup(self.data_variable_dataset)
+        self.assertEqual(len(self.imos._data_variables), 2)
+        self.assertEqual(self.imos._data_variables[0].name, 'data_variable')
+        self.assertEqual(self.imos._data_variables[1].name, 'random_data')
 
     def test_check_data_variables(self):
         self.imos.setup(self.good_dataset)
