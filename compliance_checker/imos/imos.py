@@ -1432,6 +1432,10 @@ class IMOSCheck(BaseNCCheck):
         return ret_val
     
     def check_quality_control_conventions_for_quality_control_variable(self, ds):
+        """
+        Check value of quality_control_conventions attribute matchs
+        the quality_control_set attribute
+        """
         
         test_value_dict = {'1': "IMOS standard set using the IODE flags",\
                            '2': "ARGO quality control procedure",\
@@ -1463,7 +1467,7 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
-    def check_quality_variable_dimensions(self, ds):
+    def check_quality_control_variable_dimensions(self, ds):
         """
         Check quality variable has same dimensions as the related data variable.
         """
@@ -1504,9 +1508,9 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
-    def check_quality_variable_standard_name(self, ds):
+    def check_quality_control_variable_standard_name(self, ds):
         """
-        Check quality variable standard name.
+        Check quality control variable standard name attribute.
         """
         ret_val = []
 
