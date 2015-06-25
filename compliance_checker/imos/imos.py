@@ -1472,6 +1472,38 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
         return ret_val
+    
+    def check_quality_control_conventions_for_quality_control_variable(self, ds):
+        
+        test_value_dict = {'1': "IMOS standard set using the IODE flags",\
+                           '2': "ARGO quality control procedure",\
+                           '3': "BOM (SST and Air-Sea flux) quality control procedure",\
+                           '4': "WOCE quality control procedure (Multidisciplinary Underway Network - CO 2 measurements)"}               
+        
+        ret_val = []
+
+        for qc_variable in self._quality_control_variables:
+            key = str(int(qc_variable.quality_control_set))
+            
+            if key in test_value_dict:
+                test_value = test_value_dict[key]
+
+                result_name = ('var', 'quality_variable', qc_variable.name, 'check_attributes')
+                reasoning = ["quality_control_conventions doesn't match value in quality_control_set"]
+
+                result = self._check_value((qc_variable.name,'quality_control_conventions',),
+                                        test_value,
+                                        IMOSCheck.OPERATOR_EQUAL,
+                                        ds,
+                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                        result_name,
+                                        BaseCheck.MEDIUM,
+                                        reasoning)
+
+                if result is not None:
+                    ret_val.append(result)
+
+        return ret_val
 
     def check_quality_variable_dimensions(self, ds):
         """
