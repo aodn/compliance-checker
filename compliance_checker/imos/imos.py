@@ -4,30 +4,37 @@ Compliance Test Suite for the Integrated Marine Observing System
 http://www.imos.org.au/
 '''
 
-from numbers import Number
-from numpy import amax
-from numpy import amin
-from compliance_checker.base import BaseCheck, BaseNCCheck, Result
 import datetime
-import numpy as np
-from util import is_monotonic
-from util import is_numeric
-from util import find_ancillary_variables
-from util import find_data_variables
-from util import find_quality_control_variables
-from util import find_ancillary_variables_by_variable
-from util import is_valid_email
-from compliance_checker.cf.util import find_coord_vars, units_convertible, _possibleaxis, _possibleaxisunits, _possibleaxisunits
 from types import IntType
 
+import numpy as np
+from numpy import amax
+from numpy import amin
+
+from compliance_checker.cf.util import find_coord_vars, units_convertible,\
+    _possibleaxis, _possibleaxisunits
+from compliance_checker.base import BaseCheck, BaseNCCheck, Result
+
+from compliance_checker.imos.util import is_monotonic
+from compliance_checker.imos.util import is_numeric
+from compliance_checker.imos.util import find_ancillary_variables
+from compliance_checker.imos.util import find_data_variables
+from compliance_checker.imos.util import find_quality_control_variables
+from compliance_checker.imos.util import find_ancillary_variables_by_variable
+from compliance_checker.imos.util import is_valid_email
+from compliance_checker.imos.util import check_present
+
+
 class IMOSCheck(BaseNCCheck):
+    """This is the class implements the IMOS netcdf check logic
+    """
     register_checker = True
     name = 'imos'
-    
+
     CHECK_VARIABLE = 1
     CHECK_GLOBAL_ATTRIBUTE = 0
     CHECK_VARIABLE_ATTRIBUTE = 3
-    
+
     OPERATOR_EQUAL = 1
     OPERATOR_MIN = 2
     OPERATOR_MAX = 3
@@ -39,14 +46,21 @@ class IMOSCheck(BaseNCCheck):
 
     @classmethod
     def beliefs(cls):
+        """ This is the method from parent class.
+        """
         return {}
 
     def setup(self, ds):
+        """This method is called by parent class and initialization code should
+        go here
+        """
         self._coordinate_variables = find_coord_vars(ds.dataset)
         self._ancillary_variables = find_ancillary_variables(ds.dataset)
-        
-        self._data_variables = find_data_variables(ds.dataset, self._coordinate_variables, self._ancillary_variables)
-        
+
+        self._data_variables = find_data_variables(ds.dataset,\
+                                self._coordinate_variables,\
+                                self._ancillary_variables)
+
         self._quality_control_variables = find_quality_control_variables(ds.dataset)
 
     def check_global_attributes(self, ds):
@@ -70,14 +84,14 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
-    def check_variable_attributes(self, ds):
+    def check_variable_attributes(self, dataset):
         """
         Check to ensure all variable string attributes are not empty.
         """
         ret_val = []
         result = None
 
-        for variable_name, variable in ds.dataset.variables.iteritems():
+        for variable_name, variable in dataset.dataset.variables.iteritems():
             for attribute_name in variable.ncattrs():
                 attribute_value = getattr(variable, attribute_name)
 
@@ -93,7 +107,7 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
-    def check_project_attribute(self, ds):
+    def check_project_attribute(self, dataset):
         """
         Check the global project attribute and ensure it has value
         'Integrated Marine Observing System (IMOS)'
@@ -104,66 +118,13 @@ class IMOSCheck(BaseNCCheck):
         result = self._check_value(("project",),
                                     "Integrated Marine Observing System (IMOS)",
                                     IMOSCheck.OPERATOR_EQUAL,
-                                    ds,                                    
+                                    dataset,
                                     IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                     result_name,
                                     BaseCheck.HIGH)
 
         ret_val.append(result)
         return ret_val
-
-    def _check_present(self, name, ds, check_type, result_name, check_priority, reasoning=None):
-        """
-        Help method to check whether a variable, variable attribute
-        or a global attribute presents.
-
-        params:
-            name (tuple): variable name and attribute name.
-                          For global attribute, only attribute name present.
-            ds (Dataset): netcdf data file
-            check_type (int): CHECK_VARIABLE, CHECK_GLOBAL_ATTRIBUTE,
-                              CHECK_VARIABLE_ATTRIBUTE
-            result_name: the result name to display
-            check_priority (int): the check priority
-            reasoning (str): reason string for failed check
-        return:
-            result (Result): result for the check
-        """
-
-        passed = True
-
-        if check_type == IMOSCheck.CHECK_GLOBAL_ATTRIBUTE:
-            if not result_name:
-                result_name = ('globalattr', name[0],'check_attribute_present')
-            if name[0] not in ds.dataset.ncattrs():
-                if not reasoning:
-                    reasoning = ["Attribute is not present"]
-                    passed = False
-
-        if check_type == IMOSCheck.CHECK_VARIABLE or\
-            check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
-            if not result_name:
-                result_name = ('var', name[0],'check_variable_present')
-
-            variable = ds.dataset.variables.get(name[0], None)
-
-            if variable == None:
-                if not reasoning:
-                    reasoning = ['Variable is not present']
-                passed = False
-
-            else:
-                if check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
-                    if not result_name:
-                        result_name = ('var', name[0], name[1], 'check_variable_attribute_present')
-                    if name[1] not in variable.ncattrs():
-                        if not reasoning:
-                            reasoning = ["Variable attribute is not present"]
-                        passed = False
-
-        result = Result(check_priority, passed, result_name, reasoning)
-
-        return result
 
     def _check_value(self, name, value, operator, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
         """
@@ -187,9 +148,9 @@ class IMOSCheck(BaseNCCheck):
         return:
             result (Result): result for the check
         """
-        result = self._check_present(name, ds, check_type,
-                            result_name,
-                            BaseCheck.HIGH)
+        result = check_present(name, ds, check_type,
+                               result_name,
+                               BaseCheck.HIGH)
 
         if result.value:
             result = None
@@ -321,9 +282,9 @@ class IMOSCheck(BaseNCCheck):
         return:
             result (Result): result for the check
         """
-        result = self._check_present(name, ds, check_type,
-                            result_name,
-                            BaseCheck.HIGH)
+        result = check_present(name, ds, check_type,
+                               result_name,
+                               BaseCheck.HIGH)
 
         if result.value:
             if check_type == IMOSCheck.CHECK_GLOBAL_ATTRIBUTE:
@@ -374,9 +335,9 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
-        result = self._check_present(('LATITUDE',), ds, IMOSCheck.CHECK_VARIABLE,
-                                     result_name,
-                                     BaseCheck.HIGH)
+        result = check_present(('LATITUDE',), ds, IMOSCheck.CHECK_VARIABLE,
+                                result_name,
+                                BaseCheck.HIGH)
 
         if result.value:
             result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
@@ -436,9 +397,9 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         result_name = ('globalattr', 'geospatial_lon_min', 'check_attribute_type')
-        result = self._check_present(('LONGITUDE',), ds, IMOSCheck.CHECK_VARIABLE,
-                                     result_name,
-                                     BaseCheck.HIGH)
+        result = check_present(('LONGITUDE',), ds, IMOSCheck.CHECK_VARIABLE,
+                                result_name,
+                                BaseCheck.HIGH)
 
         if result.value:
             result_name = ('globalattr', 'geospatial_lon_min', 'check_attribute_type')
@@ -498,9 +459,9 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         result_name = ('globalattr', 'geospatial_vertical_min', 'check_attribute_type')
-        result = self._check_present(('VERTICAL',), ds, IMOSCheck.CHECK_VARIABLE,
-                                     result_name,
-                                     BaseCheck.HIGH)
+        result = check_present(('VERTICAL',), ds, IMOSCheck.CHECK_VARIABLE,
+                                result_name,
+                                BaseCheck.HIGH)
 
         if result.value:
             result_name = ('globalattr', 'geospatial_vertical_min', 'check_attribute_type')
@@ -560,9 +521,9 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
         result_name = ('globalattr', 'time_coverage_start','check_date_format')
 
-        result = self._check_present(('TIME',), ds, IMOSCheck.CHECK_VARIABLE,
-                                     result_name,
-                                     BaseCheck.HIGH)
+        result = check_present(('TIME',), ds, IMOSCheck.CHECK_VARIABLE,
+                                result_name,
+                                BaseCheck.HIGH)
 
         if result.value:
             results = self._check_str_type(ds, 'time_coverage_start')
@@ -813,11 +774,11 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         result_name = ('var', 'TIME', 'check_present')
-        result = self._check_present(('TIME',),
-                                     ds,
-                                     IMOSCheck.CHECK_VARIABLE,
-                                     result_name,
-                                     BaseCheck.HIGH)
+        result = check_present(('TIME',),
+                                ds,
+                                IMOSCheck.CHECK_VARIABLE,
+                                result_name,
+                                BaseCheck.HIGH)
         if result.value:
 
             result_name = ('var', 'TIME', 'standard_name', 'check_attributes')
@@ -846,21 +807,21 @@ class IMOSCheck(BaseNCCheck):
 
             result_name = ('var', 'TIME', 'valid_min', 'check_present')
 
-            result = self._check_present(('TIME', 'valid_min'),
-                                         ds,
-                                         IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                         result_name,
-                                         BaseCheck.HIGH)
+            result = check_present(('TIME', 'valid_min'),
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
 
             ret_val.append(result)
 
             result_name = ('var', 'TIME', 'valid_max', 'check_present')
 
-            result = self._check_present(('TIME', 'valid_max'),
-                                         ds,
-                                         IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                         result_name,
-                                         BaseCheck.HIGH)
+            result = check_present(('TIME', 'valid_max'),
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
 
             ret_val.append(result)
 
@@ -914,11 +875,11 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
         
         result_name = ('var', 'LONGITUDE', 'check_present')
-        result = self._check_present(('LONGITUDE',),
-                                     ds,
-                                     IMOSCheck.CHECK_VARIABLE,
-                                     result_name,
-                                     BaseCheck.HIGH)
+        result = check_present(('LONGITUDE',),
+                                ds,
+                                IMOSCheck.CHECK_VARIABLE,
+                                result_name,
+                                BaseCheck.HIGH)
         
         if result.value:
             result_name = ('var', 'LONGITUDE', 'standard_name', 'check_attributes')
@@ -1060,11 +1021,11 @@ class IMOSCheck(BaseNCCheck):
         result_name = ('var', 'LATITUDE', 'standard_name', 'check_attributes')
 
 
-        result = self._check_present(('LATITUDE',),
-                                    ds,
-                                    IMOSCheck.CHECK_VARIABLE,
-                                    result_name,
-                                    BaseCheck.HIGH)
+        result = check_present(('LATITUDE',),
+                                ds,
+                                IMOSCheck.CHECK_VARIABLE,
+                                result_name,
+                                BaseCheck.HIGH)
 
         if result.value:
             result = self._check_value(('LATITUDE','standard_name',),
@@ -1172,11 +1133,11 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         result_name = ('var', 'VERTICAL', 'check_present')
-        result = self._check_present(('VERTICAL',),
-                                     ds,
-                                     IMOSCheck.CHECK_VARIABLE,
-                                     result_name,
-                                     BaseCheck.HIGH)
+        result = check_present(('VERTICAL',),
+                                ds,
+                                IMOSCheck.CHECK_VARIABLE,
+                                result_name,
+                                BaseCheck.HIGH)
         if result.value:
 
             result_name = ('var', 'VERTICAL', 'reference_datum', 'check_attributes')
@@ -1237,21 +1198,21 @@ class IMOSCheck(BaseNCCheck):
 
             result_name = ('var', 'VERTICAL', 'valid_min', 'check_present')
 
-            result = self._check_present(('VERTICAL', 'valid_min'),
-                                         ds,
-                                         IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                         result_name,
-                                         BaseCheck.HIGH)
+            result = check_present(('VERTICAL', 'valid_min'),
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
 
             ret_val.append(result)
 
             result_name = ('var', 'VERTICAL', 'valid_max', 'check_present')
 
-            result = self._check_present(('VERTICAL', 'valid_max'),
-                                         ds,
-                                         IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                         result_name,
-                                         BaseCheck.HIGH)
+            result = check_present(('VERTICAL', 'valid_max'),
+                                    ds,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
 
             ret_val.append(result)
 
@@ -1623,16 +1584,16 @@ class IMOSCheck(BaseNCCheck):
         """
         Check geospatial_vertical_positive global attribute and the value is 'up' or 'down',
         if exists
-        """        
+        """
         ret_val = []
 
         result_name = ('globalattr', 'geospatial_vertical_positive','check_attributes')
 
-        result = self._check_present(("geospatial_vertical_positive",),
-                            ds,
-                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                            result_name,
-                            BaseCheck.MEDIUM)
+        result = check_present(("geospatial_vertical_positive",),
+                               ds,
+                               IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                               result_name,
+                               BaseCheck.MEDIUM)
 
         if result.value:
             result1 = self._check_value(("geospatial_vertical_positive",),
