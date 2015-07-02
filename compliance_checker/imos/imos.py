@@ -11,8 +11,7 @@ import numpy as np
 from numpy import amax
 from numpy import amin
 
-from compliance_checker.cf.util import find_coord_vars, units_convertible,\
-    _possibleaxis, _possibleaxisunits
+from compliance_checker.cf.util import find_coord_vars, _possibleaxis, _possibleaxisunits
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
 
 from compliance_checker.imos.util import is_monotonic
@@ -21,7 +20,6 @@ from compliance_checker.imos.util import find_ancillary_variables
 from compliance_checker.imos.util import find_data_variables
 from compliance_checker.imos.util import find_quality_control_variables
 from compliance_checker.imos.util import find_ancillary_variables_by_variable
-from compliance_checker.imos.util import is_valid_email
 from compliance_checker.imos.util import check_present
 from compliance_checker.imos.util import check_value
 from compliance_checker.imos.util import check_attribute_type
@@ -423,7 +421,6 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
-
     def _check_str_type(self, dataset, name):
         """
         Check the global attribute has string type
@@ -489,9 +486,15 @@ class IMOSCheck(BaseNCCheck):
         return self._check_global_value_equal(dataset,'data_centre_email', 'info@emii.org.au')
 
     def check_principal_investigator(self, dataset):
+        '''
+        Check the global attribute principal_investigator
+        '''
         return self._check_str_type(dataset, 'principal_investigator')
 
     def check_citation(self, dataset):
+        '''
+        Check the global attribute citation
+        '''
         return self._check_str_type(dataset, 'citation')
 
     def check_acknowledgement(self, dataset):
@@ -500,10 +503,12 @@ class IMOSCheck(BaseNCCheck):
         value
         """
         ret_val = []
-
         result_name = ('globalattr', 'acknowledgement','check_attributes')
-        value = "Data was sourced from the Integrated Marine Observing System (IMOS) - IMOS is supported by the Australian Government through the National Collaborative Research Infrastructure Strategy (NCRIS) and the Super Science Initiative (SSI)"
-        ret_val = []
+        value = "Data was sourced from the Integrated Marine Observing System (IMOS)" \
+        " - IMOS is supported by the Australian Government through the National" \
+        " Collaborative Research Infrastructure Strategy (NCRIS) and the Super" \
+        " Science Initiative (SSI)"
+
         result = check_value(('acknowledgement',),
                                 value,
                                 IMOSCheck.OPERATOR_SUB_STRING,
@@ -520,10 +525,13 @@ class IMOSCheck(BaseNCCheck):
         Check the global distribution statement attribute and ensure it has
         expected value
         """
-        ret_val = []
-
         result_name = ('globalattr', 'distribution_statement','check_attributes')
-        value = 'Data may be re-used, provided that related metadata explaining the data has been reviewed by the user, and the data is appropriately acknowledged. Data, products and services from IMOS are provided "as is" without any warranty as to fitness for a particular purpose.'
+        value = 'Data may be re-used, provided that related metadata explaining' \
+        ' the data has been reviewed by the user, and the data is appropriately' \
+        ' acknowledged. Data, products and services from IMOS are' \
+        ' provided "as is" without any warranty as to fitness for a' \
+        ' particular purpose.'
+
         ret_val = []
         result = check_value(('distribution_statement',),
                                 value,
@@ -591,8 +599,9 @@ class IMOSCheck(BaseNCCheck):
             reasoning = None
             if not space_time_checked:
                 if str(var.name) in _possibleaxis \
-                    or (hasattr(var, 'units') and (var.units in _possibleaxisunits or var.units.split(" ")[0]  in _possibleaxisunits)) \
-                    or hasattr(var,'positive'):
+                    or (hasattr(var, 'units') and \
+                    (var.units in _possibleaxisunits or var.units.split(" ")[0] \
+                    in _possibleaxisunits)) or hasattr(var,'positive'):
                     space_time_checked = True
                     passed = True
                 else:
@@ -1211,7 +1220,8 @@ class IMOSCheck(BaseNCCheck):
                 if result is not None:
                     ret_val.append(result)
 
-                result_name = ('var', 'data_variable', var.name, '_FillValue', 'check_attribute_type')
+                result_name = ('var', 'data_variable', var.name, '_FillValue', \
+                                'check_attribute_type')
                 reasoning = ["Attribute type is not same as variable type"]
                 result = None
                 result = check_attribute_type((var.name,'_FillValue',),
@@ -1225,7 +1235,8 @@ class IMOSCheck(BaseNCCheck):
                 if result is not None:
                     ret_val.append(result)
 
-                result_name = ('var', 'data_variable', var.name, 'valid_min', 'check_attribute_type')
+                result_name = ('var', 'data_variable', var.name, 'valid_min',\
+                               'check_attribute_type')
                 reasoning = ["Attribute type is not same as variable type"]
                 result = None
                 result = check_attribute_type((var.name,'valid_min',),
@@ -1239,7 +1250,8 @@ class IMOSCheck(BaseNCCheck):
                 if result is not None:
                     ret_val.append(result)
 
-                result_name = ('var', 'data_variable', var.name, 'valid_max', 'check_attribute_type')
+                result_name = ('var', 'data_variable', var.name, 'valid_max',\
+                               'check_attribute_type')
                 reasoning = ["Attribute type is not same as variable type"]
                 result = None
                 result = check_attribute_type((var.name,'valid_max',),
@@ -1263,7 +1275,7 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         for qc_variable in self._quality_control_variables:
-            result_name = ('var', 'quality_variable', qc_variable.name, 'check_attributes')    
+            result_name = ('var', 'quality_variable', qc_variable.name, 'check_attributes')
             result = check_value((qc_variable.name,'quality_control_set',),
                                 [1,2,3,4],
                                 IMOSCheck.OPERATOR_WITHIN,
@@ -1279,14 +1291,15 @@ class IMOSCheck(BaseNCCheck):
 
     def check_quality_control_conventions_for_quality_control_variable(self, dataset):
         """
-        Check value of quality_control_conventions attribute matchs
+        Check value of quality_control_conventions attribute matches
         the quality_control_set attribute
         """
 
         test_value_dict = {'1': "IMOS standard set using the IODE flags",\
                            '2': "ARGO quality control procedure",\
                            '3': "BOM (SST and Air-Sea flux) quality control procedure",\
-                           '4': "WOCE quality control procedure (Multidisciplinary Underway Network - CO 2 measurements)"}               
+                           '4': "WOCE quality control procedure" \
+                            " (Multidisciplinary Underway Network - CO 2 measurements)"}
 
         ret_val = []
 
@@ -1297,7 +1310,8 @@ class IMOSCheck(BaseNCCheck):
                 test_value = test_value_dict[key]
 
                 result_name = ('var', 'quality_variable', qc_variable.name, 'check_attributes')
-                reasoning = ["quality_control_conventions doesn't match value in quality_control_set"]
+                reasoning = ["quality_control_conventions doesn't match" \
+                             " value in quality_control_set"]
 
                 result = check_value((qc_variable.name,'quality_control_conventions',),
                                         test_value,
@@ -1320,9 +1334,11 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
         for qc_variable in self._quality_control_variables:
             for data_variable in self._data_variables:
-                ancillary_variables = find_ancillary_variables_by_variable(dataset.dataset, data_variable)
+                ancillary_variables = \
+                find_ancillary_variables_by_variable(dataset.dataset, data_variable)
                 if qc_variable in ancillary_variables:
-                    result_name = ('var', 'quality_variable', qc_variable.name, data_variable.name, 'check_dimension')
+                    result_name = ('var', 'quality_variable', qc_variable.name,\
+                                    data_variable.name, 'check_dimension')
                     if data_variable.dimensions == qc_variable.dimensions:
                         result = Result(BaseCheck.HIGH, True, result_name, None)
                     else:
@@ -1341,13 +1357,16 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         for data_variable in self._data_variables:
-            ancillary_variables = find_ancillary_variables_by_variable(dataset.dataset, data_variable)
+            ancillary_variables = \
+            find_ancillary_variables_by_variable(dataset.dataset, data_variable)
             for ancillary_variable in ancillary_variables:
-                result_name = ('var', 'quality_variable', ancillary_variable.name, data_variable.name, 'check_listed')
+                result_name = ('var', 'quality_variable', \
+                               ancillary_variable.name, data_variable.name, 'check_listed')
                 if ancillary_variable in self._quality_control_variables:
                     result = Result(BaseCheck.HIGH, True, result_name, None)
                 else:
-                    reasoning = ["Quality variable is not listed in the data variable's ancillary_variables attribute"]
+                    reasoning = ["Quality variable is not listed in the data" \
+                                 " variable's ancillary_variables attribute"]
                     result = Result(BaseCheck.HIGH, False, result_name, reasoning)
 
                 ret_val.append(result)
@@ -1362,10 +1381,12 @@ class IMOSCheck(BaseNCCheck):
 
         for qc_variable in self._quality_control_variables:
             for data_variable in self._data_variables:
-                ancillary_variables = find_ancillary_variables_by_variable(dataset.dataset, data_variable)
+                ancillary_variables = \
+                find_ancillary_variables_by_variable(dataset.dataset, data_variable)
                 if qc_variable in ancillary_variables:
                     value = getattr(data_variable, 'standard_name') + ' ' + 'status_flag'
-                    result_name = ('var', 'quality_variable', qc_variable.name, data_variable.name, 'check_standard_name')
+                    result_name = ('var', 'quality_variable', \
+                                   qc_variable.name, data_variable.name, 'check_standard_name')
                     if getattr(qc_variable, 'standard_name') != value:
                         reasoning = ["Standard is not corrent"]
                         result = Result(BaseCheck.HIGH, False, result_name, reasoning)
@@ -1534,7 +1555,7 @@ class IMOSCheck(BaseNCCheck):
             ret_val.append(result)
 
         return ret_val
-    
+
     def check_local_time_zone(self, dataset):
         """
         Check value of local time zone global attribute is between -12 and 12,
