@@ -579,3 +579,14 @@ class TestIMOS(unittest.TestCase):
         ret_val = self.imos.check_geospatial_vertical_units(self.missing_dataset)
 
         self.assertTrue(len(ret_val) == 0)
+        
+    def test_check_conventions_attribute(self):
+        ret_val = self.imos.check_conventions(self.good_dataset)
+
+        for result in ret_val:
+            self.assertTrue(result.value)
+
+        ret_val = self.imos.check_conventions(self.bad_dataset)
+        
+        for result in ret_val:
+            self.assertFalse(result.value)

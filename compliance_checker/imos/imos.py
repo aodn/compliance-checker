@@ -1778,3 +1778,32 @@ class IMOSCheck(BaseNCCheck):
             ret_val.append(result)
 
         return ret_val
+
+    def check_conventions(self, ds):
+        """
+        Check the global Conventions attribute and ensure it contains value
+        CF-1.6 and IMOS-1.3.
+        """
+        ret_val = []
+
+        result_name = ('globalattr', 'Conventions','check_attributes')
+
+        result1 = self._check_value(('Conventions',),
+                                    "CF-1.6",
+                                    IMOSCheck.OPERATOR_SUB_STRING,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+
+        ret_val.append(result1)
+        result2 = self._check_value(('Conventions',),
+                                    "IMOS-1.3",
+                                    IMOSCheck.OPERATOR_SUB_STRING,
+                                    ds,
+                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+
+        ret_val.append(result2)
+        return ret_val
