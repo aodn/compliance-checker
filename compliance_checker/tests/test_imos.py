@@ -99,28 +99,6 @@ class TestIMOS(unittest.TestCase):
         for result in ret_val:
             self.assertFalse(result.value)
 
-    def test_check_conventions_attribute(self):
-        ret_val = self.imos.check_conventions(self.good_dataset)
-
-        for result in ret_val:
-            self.assertTrue(result.value)
-
-        ret_val = self.imos.check_conventions(self.bad_dataset)
-        
-        for result in ret_val:
-            self.assertFalse(result.value)
-
-    def test_check_conventions_attribute(self):
-        ret_val = self.imos.check_conventions(self.good_dataset)
-
-        for result in ret_val:
-            self.assertTrue(result.value)
-
-        ret_val = self.imos.check_conventions(self.bad_dataset)
-        
-        for result in ret_val:
-            self.assertFalse(result.value)
-    
     def test_check_naming_authority(self):
         ret_val = self.imos.check_naming_authority(self.good_dataset)
         
@@ -384,9 +362,9 @@ class TestIMOS(unittest.TestCase):
             self.assertFalse(result.value)
 
         ret_val = self.imos.check_latitude_variable(self.missing_dataset)
-        
+
         self.assertTrue(len(ret_val) == 0)
-    
+
     def test_check_vertical_variable(self):
         ret_val = self.imos.check_vertical_variable(self.good_dataset)
 
@@ -399,7 +377,7 @@ class TestIMOS(unittest.TestCase):
             self.assertFalse(result.value)
 
         ret_val = self.imos.check_vertical_variable(self.missing_dataset)
-        
+
         self.assertTrue(len(ret_val) == 0)
 
     def test_check_variable_attribute_type(self):
