@@ -317,3 +317,59 @@ def check_value(name, value, operator, ds, check_type, result_name, check_priori
             result = None
 
     return result
+
+def check_attribute_type(name, type, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
+    """
+    Check global data attribute and ensure it has the right type.
+    params:
+        name (tuple): attribute name
+        type (class): expected type
+        ds (Dataset): netcdf data file
+        check_type (int): CHECK_VARIABLE, CHECK_GLOBAL_ATTRIBUTE,
+                          CHECK_VARIABLE_ATTRIBUTE
+        result_name: the result name to display
+        check_priority (int): the check priority
+        reasoning (str): reason string for failed check
+        skip_check_presnet (boolean): flag to allow check only performed
+                                     if attribute is present
+    return:
+        result (Result): result for the check
+    """
+    result = check_present(name, ds, check_type,
+                           result_name,
+                           BaseCheck.HIGH)
+
+    if result.value:
+        if check_type == CHECK_GLOBAL_ATTRIBUTE:
+            attribute_value = getattr(ds.dataset, name[0])
+
+        if check_type == CHECK_VARIABLE_ATTRIBUTE:
+            attribute_value = getattr(ds.dataset.variables[name[0]], name[1])
+
+        if check_type == CHECK_VARIABLE:
+            attribute_value = ds.dataset.variables[name[0]]
+
+        dtype = getattr(attribute_value, 'dtype', None)
+        passed = True
+
+        if not dtype is None:
+            if dtype != type:
+                passed = False
+        else:
+            try:
+                if not isinstance(attribute_value, type):
+                    passed = False
+            except TypeError:
+                passed = False
+
+        if not passed:
+            if not reasoning:
+                reasoning = ["Attribute type is not equal to " + str(type)]
+            result = Result(check_priority, False, result_name, reasoning)
+        else:
+            result = Result(check_priority, True, result_name, None)
+    else:
+        if skip_check_presnet:
+            result = None
+
+    return result

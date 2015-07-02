@@ -24,6 +24,7 @@ from compliance_checker.imos.util import find_ancillary_variables_by_variable
 from compliance_checker.imos.util import is_valid_email
 from compliance_checker.imos.util import check_present
 from compliance_checker.imos.util import check_value
+from compliance_checker.imos.util import check_attribute_type
 
 
 class IMOSCheck(BaseNCCheck):
@@ -156,69 +157,13 @@ class IMOSCheck(BaseNCCheck):
         result = check_value(('data_centre',),
                                 "eMarine Information Infrastructure (eMII)",
                                 IMOSCheck.OPERATOR_EQUAL,
-                                dataset,                               
+                                dataset,
                                 IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                 result_name,
                                 BaseCheck.HIGH)
 
         ret_val.append(result)
         return ret_val
-
-    def _check_attribute_type(self, name, type, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
-        """
-        Check global data attribute and ensure it has the right type.
-        params:
-            name (tuple): attribute name
-            type (class): expected type
-            ds (Dataset): netcdf data file
-            check_type (int): CHECK_VARIABLE, CHECK_GLOBAL_ATTRIBUTE,
-                              CHECK_VARIABLE_ATTRIBUTE
-            result_name: the result name to display
-            check_priority (int): the check priority
-            reasoning (str): reason string for failed check
-            skip_check_presnet (boolean): flag to allow check only performed
-                                         if attribute is present
-        return:
-            result (Result): result for the check
-        """
-        result = check_present(name, ds, check_type,
-                               result_name,
-                               BaseCheck.HIGH)
-
-        if result.value:
-            if check_type == IMOSCheck.CHECK_GLOBAL_ATTRIBUTE:
-                attribute_value = getattr(ds.dataset, name[0])
-
-            if check_type == IMOSCheck.CHECK_VARIABLE_ATTRIBUTE:
-                attribute_value = getattr(ds.dataset.variables[name[0]], name[1])
-
-            if check_type == IMOSCheck.CHECK_VARIABLE:
-                attribute_value = ds.dataset.variables[name[0]]
-
-            dtype = getattr(attribute_value, 'dtype', None)
-            passed = True
-
-            if not dtype is None:
-                if dtype != type:
-                    passed = False
-            else:
-                try:
-                    if not isinstance(attribute_value, type):
-                        passed = False
-                except TypeError:
-                    passed = False
-
-            if not passed:
-                if not reasoning:
-                    reasoning = ["Attribute type is not equal to " + str(type)]
-                result = Result(check_priority, False, result_name, reasoning)
-            else:
-                result = Result(check_priority, True, result_name, None)
-        else:
-            if skip_check_presnet:
-                result = None
-
-        return result
 
     def check_author(self, dataset):
         """
@@ -240,13 +185,13 @@ class IMOSCheck(BaseNCCheck):
 
         if result.value:
             result_name = ('globalattr', 'geospatial_lat_min', 'check_attribute_type')
-            result = self._check_attribute_type(('geospatial_lat_min',),
-                                            np.number,
-                                            dataset,
-                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                            result_name,
-                                            BaseCheck.HIGH,
-                                            ["Attribute type is not numeric"])
+            result = check_attribute_type(('geospatial_lat_min',),
+                                        np.number,
+                                        dataset,
+                                        IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                        result_name,
+                                        BaseCheck.HIGH,
+                                        ["Attribute type is not numeric"])
 
             if result:
                 ret_val.append(result)
@@ -264,13 +209,13 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             result_name = ('globalattr', 'geospatial_lat_max', 'check_attribute_type')
-            result2 = self._check_attribute_type(('geospatial_lat_max',),
-                                                np.number,
-                                                dataset,
-                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                                result_name,
-                                                BaseCheck.HIGH,
-                                                ["Attribute type is not numeric"])
+            result2 = check_attribute_type(('geospatial_lat_max',),
+                                            np.number,
+                                            dataset,
+                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                            result_name,
+                                            BaseCheck.HIGH,
+                                            ["Attribute type is not numeric"])
             if result2:
                 ret_val.append(result2)
 
@@ -302,13 +247,13 @@ class IMOSCheck(BaseNCCheck):
 
         if result.value:
             result_name = ('globalattr', 'geospatial_lon_min', 'check_attribute_type')
-            result = self._check_attribute_type(('geospatial_lon_min',),
-                                                np.number,
-                                                dataset,
-                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                                result_name,
-                                                BaseCheck.HIGH,
-                                                ["Attribute type is not numeric"])
+            result = check_attribute_type(('geospatial_lon_min',),
+                                            np.number,
+                                            dataset,
+                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                            result_name,
+                                            BaseCheck.HIGH,
+                                            ["Attribute type is not numeric"])
 
             if result:
                 ret_val.append(result)
@@ -326,13 +271,13 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             result_name = ('globalattr', 'geospatial_lon_max', 'check_attribute_type')
-            result2 = self._check_attribute_type(('geospatial_lon_max',),
-                                                np.number,
-                                                dataset,
-                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                                result_name,
-                                                BaseCheck.HIGH,
-                                                ["Attribute type is not numeric"])
+            result2 = check_attribute_type(('geospatial_lon_max',),
+                                            np.number,
+                                            dataset,
+                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                            result_name,
+                                            BaseCheck.HIGH,
+                                            ["Attribute type is not numeric"])
             if result2:
                 ret_val.append(result2)
 
@@ -364,13 +309,13 @@ class IMOSCheck(BaseNCCheck):
 
         if result.value:
             result_name = ('globalattr', 'geospatial_vertical_min', 'check_attribute_type')
-            result = self._check_attribute_type(('geospatial_vertical_min',),
-                                                np.number,
-                                                dataset,
-                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                                result_name,
-                                                BaseCheck.HIGH,
-                                                ["Attribute type is not numeric"])
+            result = check_attribute_type(('geospatial_vertical_min',),
+                                            np.number,
+                                            dataset,
+                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                            result_name,
+                                            BaseCheck.HIGH,
+                                            ["Attribute type is not numeric"])
 
             if result:
                 ret_val.append(result)
@@ -388,13 +333,13 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             result_name = ('globalattr', 'geospatial_vertical_max', 'check_attribute_type')
-            result2 = self._check_attribute_type(('geospatial_vertical_max',),
-                                                np.number,
-                                                dataset,
-                                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                                result_name,
-                                                BaseCheck.HIGH,
-                                                ["Attribute type is not numeric"])
+            result2 = check_attribute_type(('geospatial_vertical_max',),
+                                            np.number,
+                                            dataset,
+                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                            result_name,
+                                            BaseCheck.HIGH,
+                                            ["Attribute type is not numeric"])
             if result2:
                 ret_val.append(result2)
 
@@ -493,14 +438,14 @@ class IMOSCheck(BaseNCCheck):
         result_name = ('globalattr', name, 'check_atttribute_type')
         reasoning = ["Attribute type is not string"]
 
-        result = self._check_attribute_type((name,),
-                                             basestring,
-                                             dataset,
-                                             IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                             result_name,
-                                             BaseCheck.HIGH,
-                                             reasoning,
-                                             False)
+        result = check_attribute_type((name,),
+                                         basestring,
+                                         dataset,
+                                         IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                         result_name,
+                                         BaseCheck.HIGH,
+                                         reasoning,
+                                         False)
 
         ret_val.append(result)
 
@@ -600,13 +545,13 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', name, 'long_name', 'check_atttribute_type')
             reasoning = ["Attribute type is not string"]
 
-            result = self._check_attribute_type((name,'long_name',),
-                                                 basestring,
-                                                 dataset,
-                                                 IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                                 result_name,
-                                                 BaseCheck.HIGH,
-                                                 reasoning)
+            result = check_attribute_type((name,'long_name',),
+                                             basestring,
+                                             dataset,
+                                             IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                             result_name,
+                                             BaseCheck.HIGH,
+                                             reasoning)
             ret_val.append(result)
 
         return ret_val
@@ -738,13 +683,13 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', 'TIME','check_variable_type')
             reasoning = ["The Type of variable TIME is not Double"]
 
-            result = self._check_attribute_type(('TIME',),
-                                            np.float64,
-                                            dataset,
-                                            IMOSCheck.CHECK_VARIABLE,
-                                            result_name,
-                                            BaseCheck.HIGH,
-                                            reasoning)
+            result = check_attribute_type(('TIME',),
+                                        np.float64,
+                                        dataset,
+                                        IMOSCheck.CHECK_VARIABLE,
+                                        result_name,
+                                        BaseCheck.HIGH,
+                                        reasoning)
 
             ret_val.append(result)
 
@@ -805,12 +750,12 @@ class IMOSCheck(BaseNCCheck):
             ret_val.append(result)
 
             result_name = ('var', 'LONGITUDE', 'reference_datum', 'check_attributes')
-            result = self._check_attribute_type(('LONGITUDE','reference_datum',),
-                                        basestring,
-                                        dataset,
-                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                        result_name,
-                                        BaseCheck.HIGH)
+            result = check_attribute_type(('LONGITUDE','reference_datum',),
+                                    basestring,
+                                    dataset,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
 
             ret_val.append(result)
 
@@ -880,7 +825,7 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', 'LONGITUDE','check_variable_type')
             reasoning = ["The Type of variable LONGITUDE is not Double or Float"]
 
-            result1 = self._check_attribute_type(('LONGITUDE',),
+            result1 = check_attribute_type(('LONGITUDE',),
                                         np.float64,
                                         dataset,
                                         IMOSCheck.CHECK_VARIABLE,
@@ -888,7 +833,7 @@ class IMOSCheck(BaseNCCheck):
                                         BaseCheck.HIGH,
                                         reasoning)
 
-            result2 = self._check_attribute_type(('LONGITUDE',),
+            result2 = check_attribute_type(('LONGITUDE',),
                                         np.float32,
                                         dataset,
                                         IMOSCheck.CHECK_VARIABLE,
@@ -949,7 +894,7 @@ class IMOSCheck(BaseNCCheck):
             ret_val.append(result)
 
             result_name = ('var', 'LATITUDE', 'reference_datum', 'check_attributes')
-            result = self._check_attribute_type(('LATITUDE','reference_datum',),
+            result = check_attribute_type(('LATITUDE','reference_datum',),
                                     basestring,
                                     dataset,
                                     IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -992,7 +937,7 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', 'LATITUDE','check_variable_type')
             reasoning = ["The Type of variable LATITUDE is not Double or Float"]
 
-            result1 = self._check_attribute_type(('LATITUDE',),
+            result1 = check_attribute_type(('LATITUDE',),
                                             np.float64,
                                             dataset,
                                             IMOSCheck.CHECK_VARIABLE,
@@ -1000,7 +945,7 @@ class IMOSCheck(BaseNCCheck):
                                             BaseCheck.HIGH,
                                             reasoning)
 
-            result2 = self._check_attribute_type(('LATITUDE',),
+            result2 = check_attribute_type(('LATITUDE',),
                                             np.float32,
                                             dataset,
                                             IMOSCheck.CHECK_VARIABLE,
@@ -1039,7 +984,7 @@ class IMOSCheck(BaseNCCheck):
         if result.value:
 
             result_name = ('var', 'VERTICAL', 'reference_datum', 'check_attributes')
-            result = self._check_attribute_type(('VERTICAL','reference_datum',),
+            result = check_attribute_type(('VERTICAL','reference_datum',),
                                        basestring,
                                        dataset,
                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -1142,7 +1087,7 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', 'VERTICAL','check_variable_type')
             reasoning = ["The Type of variable VERTICAL is not Double or Float"]
 
-            result1 = self._check_attribute_type(('VERTICAL',),
+            result1 = check_attribute_type(('VERTICAL',),
                                         np.float64,
                                         dataset,
                                         IMOSCheck.CHECK_VARIABLE,
@@ -1150,7 +1095,7 @@ class IMOSCheck(BaseNCCheck):
                                         BaseCheck.HIGH,
                                         reasoning)
 
-            result2 = self._check_attribute_type(('VERTICAL',),
+            result2 = check_attribute_type(('VERTICAL',),
                                         np.float32,
                                         dataset,
                                         IMOSCheck.CHECK_VARIABLE,
@@ -1177,7 +1122,7 @@ class IMOSCheck(BaseNCCheck):
         reasoning = ["Attribute type is not same as variable type"]
         for name,var in dataset.dataset.variables.iteritems():
             result_name = ('var', name, '_FillValue', 'check_attribute_type')
-            result = self._check_attribute_type((name,'_FillValue',),
+            result = check_attribute_type((name,'_FillValue',),
                                             var.datatype,
                                             dataset,
                                             IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -1190,7 +1135,7 @@ class IMOSCheck(BaseNCCheck):
 
             result_name = ('var', name, 'valid_min', 'check_attribute_type')
 
-            result = self._check_attribute_type((name,'valid_min',),
+            result = check_attribute_type((name,'valid_min',),
                                             var.datatype,
                                             dataset,
                                             IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -1202,7 +1147,7 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             result_name = ('var', name, 'valid_max', 'check_attribute_type')            
-            result = self._check_attribute_type((name,'valid_max',),
+            result = check_attribute_type((name,'valid_max',),
                                                 var.datatype,
                                                 dataset,
                                                 IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -1255,7 +1200,7 @@ class IMOSCheck(BaseNCCheck):
 
                 result_name = ('var', 'data_variable', var.name, 'units', 'check_attribute_type')
                 result = None
-                result = self._check_attribute_type((var.name,"units",),
+                result = check_attribute_type((var.name,"units",),
                                            basestring,
                                            dataset,
                                            IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -1269,7 +1214,7 @@ class IMOSCheck(BaseNCCheck):
                 result_name = ('var', 'data_variable', var.name, '_FillValue', 'check_attribute_type')
                 reasoning = ["Attribute type is not same as variable type"]
                 result = None
-                result = self._check_attribute_type((var.name,'_FillValue',),
+                result = check_attribute_type((var.name,'_FillValue',),
                                                 var.datatype,
                                                 dataset,
                                                 IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -1283,7 +1228,7 @@ class IMOSCheck(BaseNCCheck):
                 result_name = ('var', 'data_variable', var.name, 'valid_min', 'check_attribute_type')
                 reasoning = ["Attribute type is not same as variable type"]
                 result = None
-                result = self._check_attribute_type((var.name,'valid_min',),
+                result = check_attribute_type((var.name,'valid_min',),
                                                 var.datatype,
                                                 dataset,
                                                 IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
@@ -1297,7 +1242,7 @@ class IMOSCheck(BaseNCCheck):
                 result_name = ('var', 'data_variable', var.name, 'valid_max', 'check_attribute_type')
                 reasoning = ["Attribute type is not same as variable type"]
                 result = None
-                result = self._check_attribute_type((var.name,'valid_max',),
+                result = check_attribute_type((var.name,'valid_max',),
                                                 var.datatype,
                                                 dataset,
                                                 IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
