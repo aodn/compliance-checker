@@ -1563,7 +1563,7 @@ class IMOSCheck(BaseNCCheck):
                     value = getattr(data_variable, 'standard_name', '') + ' ' + 'status_flag'
                     result_name = ('var', 'quality_variable', qc_variable.name, data_variable.name, 'check_standard_name')
                     if getattr(qc_variable, 'standard_name', '') != value:
-                        reasoning = ["Standard name is not corrent"]
+                        reasoning = ["Standard name is not correct"]
                         result = Result(BaseCheck.HIGH, False, result_name, reasoning)
                     else:
                         result = Result(BaseCheck.HIGH, True, result_name, None)
