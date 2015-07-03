@@ -1614,22 +1614,22 @@ class IMOSCheck(BaseNCCheck):
 
         result_name = ('globalattr', 'Conventions','check_attributes')
 
-        result1 = self._check_value(('Conventions',),
-                                    "CF-1.6",
-                                    IMOSCheck.OPERATOR_SUB_STRING,
-                                    ds,
-                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                    result_name,
-                                    BaseCheck.HIGH)
+        result1 = check_value(('Conventions',),
+                                "CF-1.6",
+                                IMOSCheck.OPERATOR_SUB_STRING,
+                                ds,
+                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                result_name,
+                                BaseCheck.HIGH)
 
         ret_val.append(result1)
-        result2 = self._check_value(('Conventions',),
-                                    "IMOS-1.3",
-                                    IMOSCheck.OPERATOR_SUB_STRING,
-                                    ds,
-                                    IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                    result_name,
-                                    BaseCheck.HIGH)
+        result2 = check_value(('Conventions',),
+                                "IMOS-1.3",
+                                IMOSCheck.OPERATOR_SUB_STRING,
+                                ds,
+                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                result_name,
+                                BaseCheck.HIGH)
 
         ret_val.append(result2)
         return ret_val
