@@ -1565,7 +1565,7 @@ class IMOSCheck(BaseNCCheck):
 
         result_name = ('globalattr', 'local_time_zone','check_attributes')
 
-        value = [i for i in range(-12, 13)]
+        value = [i * 0.5 for i in range(-24, int(13 / 0.5)) if i <= 24]
 
         result = check_value(("local_time_zone",),
                                 value,
