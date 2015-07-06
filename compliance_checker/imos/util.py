@@ -49,16 +49,19 @@ def is_numeric(variable_type):
     Check whether a numpy type is numeric type (byte,
     float and integer)
     """
+    float_type = [np.float16, np.float32, np.float64, np.float128]
+    integer_type = [np.int, np.int8, np.int16, np.int32, np.int64]
+
     if variable_type == np.double:
         return True
 
-    if variable_type == np.integer:
+    if variable_type in integer_type:
         return True
 
     if variable_type == np.byte:
         return True
 
-    if variable_type == np.float:
+    if variable_type in float_type:
         return True
 
     return False
