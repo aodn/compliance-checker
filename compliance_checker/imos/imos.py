@@ -597,18 +597,15 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', 'coordinate_variable', var.name, 'space_time_coordinate', 'check_variable_present')
             passed = False
             reasoning = None
-            if not space_time_checked:
-                if str(var.name) in _possibleaxis \
-                    or (hasattr(var, 'units') and \
-                    (var.units in _possibleaxisunits or var.units.split(" ")[0] \
-                    in _possibleaxisunits)) or hasattr(var,'positive'):
-                    space_time_checked = True
-                    passed = True
-                else:
-                    passed = False
-                    reasoning = ["No space-time coordinate variable found"]
 
-            result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+            if str(var.name) in _possibleaxis \
+                or (hasattr(var, 'units') and (var.units in _possibleaxisunits or var.units.split(" ")[0]  in _possibleaxisunits)) \
+                or hasattr(var,'positive'):
+                space_time_checked = True
+
+            reasoning = ["No space-time coordinate variable found"]
+
+            result = Result(BaseCheck.HIGH, space_time_checked, result_name, reasoning)
             ret_val.append(result)
 
         return ret_val
