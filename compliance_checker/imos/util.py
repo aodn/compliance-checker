@@ -67,15 +67,16 @@ def is_numeric(variable_type):
     return False
 
 def find_variables_from_attribute(dataset, variable, attribute_name):
-    ''' Get variables based on a variable attribure such as coordinates.
+    ''' Get variables based on a variable attribute such as coordinates.
     '''
     variables = []
     variable_names = getattr(variable, attribute_name, None)
 
     if variable_names is not None:
         for variable_name in variable_names.split(' '):
-            variable = dataset.variables[variable_name]
-            variables.append(variable)
+            if dataset.variables.has_key(variable_name):
+                variable = dataset.variables[variable_name]
+                variables.append(variable)
 
     return variables
 
@@ -93,15 +94,7 @@ def find_auxiliary_coordinate_variables(dataset):
 def find_ancillary_variables_by_variable(dataset, variable):
     ''' Find all ancillary variables associated with a variable.
     '''
-    ancillary_variables = []
-    ancillary_variable_names = getattr(variable, 'ancillary_variables', None)
-
-    if ancillary_variable_names is not None:
-        for ancillary_variable_name in ancillary_variable_names.split(' '):
-            ancillary_variable = dataset.variables[ancillary_variable_name]
-            ancillary_variables.append(ancillary_variable)
-
-    return ancillary_variables
+    return find_variables_from_attribute(dataset, variable, 'ancillary_variables')
 
 def find_ancillary_variables(dataset):
     ''' Find all ancillary variables.
