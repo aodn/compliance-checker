@@ -1275,7 +1275,7 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         for qc_variable in self._quality_control_variables:
-            result_name = ('var', 'quality_variable', qc_variable.name, 'check_attributes')
+            result_name = ('var', 'quality_variable', qc_variable.name, 'quality_control_set', 'check_attributes')
             result = check_value((qc_variable.name,'quality_control_set',),
                                 [1,2,3,4],
                                 IMOSCheck.OPERATOR_WITHIN,
