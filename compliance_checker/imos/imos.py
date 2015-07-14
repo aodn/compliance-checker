@@ -810,15 +810,27 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             else:
-                result_name = ('var', 'LONGITUDE', 'valid_min', 'check_min_value')
-                reasoning = ["doesn't match value pair (0, 360) or (-180, 180)"]
-                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-                ret_val.append(result)
+                if 'present' in result1.msgs[0]:
+                    result_name = ('var', 'LONGITUDE', 'valid_min', 'check_min_value')
+                    reasoning = ["Variable attribute is not present"]
+                    result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                    ret_val.append(result)
+                elif not result1.value:
+                    result_name = ('var', 'LONGITUDE', 'valid_min', 'check_min_value')
+                    reasoning = ["doesn't match value pair (0, 360) or (-180, 180)"]
+                    result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                    ret_val.append(result)
 
-                result_name = ('var', 'LONGITUDE', 'valid_max', 'check_max_value')
-                reasoning = ["doesn't match value pair (0, 360) or (-180, 180)"]
-                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-                ret_val.append(result)
+                if 'present' in result2.msgs[0]:
+                    result_name = ('var', 'LONGITUDE', 'valid_max', 'check_max_value')
+                    reasoning = ["Variable attribute is not present"]
+                    result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                    ret_val.append(result)
+                elif not result2.value:
+                    result_name = ('var', 'LONGITUDE', 'valid_max', 'check_max_value')
+                    reasoning = ["doesn't match value pair (0, 360) or (-180, 180)"]
+                    result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                    ret_val.append(result)
 
             result_name = ('var', 'LONGITUDE', 'units', 'check_attribute_value')
             result = check_value(('LONGITUDE','units',),
