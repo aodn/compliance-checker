@@ -846,29 +846,15 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', 'LONGITUDE','check_variable_type')
             reasoning = ["The Type of variable LONGITUDE is not Double or Float"]
 
-            result1 = check_attribute_type(('LONGITUDE',),
-                                        np.float64,
+            result = check_attribute_type(('LONGITUDE',),
+                                        [np.float64, np.float, np.float32, np.float16, np.float128],
                                         dataset,
                                         IMOSCheck.CHECK_VARIABLE,
                                         result_name,
                                         BaseCheck.HIGH,
                                         reasoning)
 
-            result2 = check_attribute_type(('LONGITUDE',),
-                                        np.float32,
-                                        dataset,
-                                        IMOSCheck.CHECK_VARIABLE,
-                                        result_name,
-                                        BaseCheck.HIGH,
-                                        reasoning)
-
-            if result1.value or result2.value:
-                ret_val.append(result1)
-            else:
-                if not result1.value:
-                    ret_val.append(result1)
-                if not result2.value:
-                    ret_val.append(result2)
+            ret_val.append(result)
 
         return ret_val
 
@@ -958,29 +944,16 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', 'LATITUDE','check_variable_type')
             reasoning = ["The Type of variable LATITUDE is not Double or Float"]
 
-            result1 = check_attribute_type(('LATITUDE',),
-                                            np.float64,
+            result = check_attribute_type(('LATITUDE',),
+                                            [np.float64, np.float, np.float32, np.float16, np.float128],
                                             dataset,
                                             IMOSCheck.CHECK_VARIABLE,
                                             result_name,
                                             BaseCheck.HIGH,
                                             reasoning)
 
-            result2 = check_attribute_type(('LATITUDE',),
-                                            np.float32,
-                                            dataset,
-                                            IMOSCheck.CHECK_VARIABLE,
-                                            result_name,
-                                            BaseCheck.HIGH,
-                                            reasoning)
+            ret_val.append(result)
 
-            if result1.value or result2.value:
-                ret_val.append(result1)
-            else:
-                if not result1.value:
-                    ret_val.append(result1)
-                if not result2.value:
-                    ret_val.append(result2)
         return ret_val
 
     def check_vertical_variable(self, dataset):
@@ -1108,29 +1081,15 @@ class IMOSCheck(BaseNCCheck):
             result_name = ('var', 'VERTICAL','check_variable_type')
             reasoning = ["The Type of variable VERTICAL is not Double or Float"]
 
-            result1 = check_attribute_type(('VERTICAL',),
-                                        np.float64,
+            result = check_attribute_type(('VERTICAL',),
+                                        [np.float64, np.float, np.float32, np.float16, np.float128],
                                         dataset,
                                         IMOSCheck.CHECK_VARIABLE,
                                         result_name,
                                         BaseCheck.HIGH,
                                         reasoning)
 
-            result2 = check_attribute_type(('VERTICAL',),
-                                        np.float32,
-                                        dataset,
-                                        IMOSCheck.CHECK_VARIABLE,
-                                        result_name,
-                                        BaseCheck.HIGH,
-                                        reasoning)
-
-            if result1.value or result2.value:
-                ret_val.append(result1)
-            else:
-                if not result1.value:
-                    ret_val.append(result1)
-                if not result2.value:
-                    ret_val.append(result2)
+            ret_val.append(result)
 
         return ret_val
 
