@@ -321,12 +321,12 @@ def check_value(name, value, operator, ds, check_type, result_name, check_priori
 
     return result
 
-def check_attribute_type(name, type, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
+def check_attribute_type(name, expected_type, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
     """
     Check global data attribute and ensure it has the right type.
     params:
         name (tuple): attribute name
-        type (class): expected type
+        expected_type (class): expected type
         ds (Dataset): netcdf data file
         check_type (int): CHECK_VARIABLE, CHECK_GLOBAL_ATTRIBUTE,
                           CHECK_VARIABLE_ATTRIBUTE
@@ -355,19 +355,23 @@ def check_attribute_type(name, type, ds, check_type, result_name, check_priority
         dtype = getattr(attribute_value, 'dtype', None)
         passed = True
 
-        if not dtype is None:
-            if dtype != type:
+        if dtype is not None:
+            if type(expected_type) is list:
+                if dtype not in expected_type:
+                    passed = False
+
+            elif dtype != expected_type:
                 passed = False
         else:
             try:
-                if not isinstance(attribute_value, type):
+                if not isinstance(attribute_value, expected_type):
                     passed = False
             except TypeError:
                 passed = False
 
         if not passed:
             if not reasoning:
-                reasoning = ["Attribute type is not equal to " + str(type)]
+                reasoning = ["Attribute type is not equal to " + str(expected_type)]
             result = Result(check_priority, False, result_name, reasoning)
         else:
             result = Result(check_priority, True, result_name, None)
