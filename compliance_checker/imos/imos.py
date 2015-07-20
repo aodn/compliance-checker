@@ -1327,20 +1327,17 @@ class IMOSCheck(BaseNCCheck):
         """
         ret_val = []
 
-        for data_variable in self._data_variables:
-            ancillary_variables = \
-            find_ancillary_variables_by_variable(dataset.dataset, data_variable)
-            for ancillary_variable in ancillary_variables:
-                result_name = ('var', 'quality_variable', \
-                               ancillary_variable.name, data_variable.name, 'check_listed')
-                if ancillary_variable in self._quality_control_variables:
-                    result = Result(BaseCheck.HIGH, True, result_name, None)
-                else:
-                    reasoning = ["Quality variable is not listed in the data" \
-                                 " variable's ancillary_variables attribute"]
-                    result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+        for quality_var in self._quality_control_variables:
+            result_name = ('var', 'quality_variable', quality_var.name, 'check_listed')
 
-                ret_val.append(result)
+            if quality_var in self._ancillary_variables:
+                result = Result(BaseCheck.MEDIUM, True, result_name, None)
+            else:
+                reasoning = ["Quality variable is not listed in any data" \
+                             " variable's ancillary_variables attribute"]
+                result = Result(BaseCheck.MEDIUM, False, result_name, reasoning)
+
+            ret_val.append(result)
 
         return ret_val
 
