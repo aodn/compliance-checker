@@ -1275,26 +1275,34 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         for qc_variable in self._quality_control_variables:
-            key = str(int(qc_variable.quality_control_set))
+            quality_control_set = getattr(qc_variable, 'quality_control_set', None)
+            result_name = ('var', 'quality_variable', qc_variable.name,\
+                            'quality_control_conventions', 'check_attributes')
 
-            if key in test_value_dict:
-                test_value = test_value_dict[key]
+            if quality_control_set is not None:
+                key = str(int(qc_variable.quality_control_set))
 
-                result_name = ('var', 'quality_variable', qc_variable.name, 'check_attributes')
-                reasoning = ["quality_control_conventions doesn't match" \
-                             " value in quality_control_set"]
+                if key in test_value_dict:
+                    test_value = test_value_dict[key]
 
-                result = check_value((qc_variable.name,'quality_control_conventions',),
-                                        test_value,
-                                        IMOSCheck.OPERATOR_EQUAL,
-                                        dataset,
-                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                        result_name,
-                                        BaseCheck.MEDIUM,
-                                        reasoning)
+                    reasoning = ["quality_control_conventions doesn't match" \
+                                 " value in quality_control_set"]
 
-                if result is not None:
-                    ret_val.append(result)
+                    result = check_value((qc_variable.name,'quality_control_conventions',),
+                                            test_value,
+                                            IMOSCheck.OPERATOR_EQUAL,
+                                            dataset,
+                                            IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                            result_name,
+                                            BaseCheck.MEDIUM,
+                                            reasoning)
+
+                    if result is not None:
+                        ret_val.append(result)
+            else:
+                reasoning = ["Variable attribute is not present"]
+                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                ret_val.append(result)
 
         return ret_val
 
