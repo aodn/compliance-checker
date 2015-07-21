@@ -1306,7 +1306,7 @@ class IMOSCheck(BaseNCCheck):
         for qc_variable in self._quality_control_variables:
             quality_control_set = getattr(qc_variable, 'quality_control_set', None)
             result_name = ('var', 'quality_variable', qc_variable.name,\
-                            'quality_control_set', 'check_attributes')
+                            'quality_control_conventions', 'check_attributes')
 
             if quality_control_set is not None:
                 key = str(int(qc_variable.quality_control_set))
