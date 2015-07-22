@@ -44,7 +44,7 @@ class ComplianceChecker(object):
 
         cs = ComplianceCheckerCheckSuite()
         ds = cs.load_dataset(ds_loc)
-        score_groups = cs.run(ds, ds_loc, *checker_names)
+        score_groups = cs.run(ds, *checker_names)
 
         if criteria == 'normal':
             limit = 2
