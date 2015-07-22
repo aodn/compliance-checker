@@ -4,6 +4,8 @@ Compliance Test Suite for testing the netcdf file name
 http://www.imos.org.au/
 '''
 
+import sys
+import argparse
 import os.path
 import datetime
 import re
@@ -31,7 +33,20 @@ class IMOSFileNameCheck(BaseNCCheck):
         return {}
 
     def setup(self, ds):
-        head, tail = os.path.split(ds.ds_loc)
+                
+        if hasattr(ds, 'ds_loc'):
+            dataset_name = ds.ds_loc
+        else:
+            parser = argparse.ArgumentParser()
+            parser.add_argument('dataset_location', nargs=1)
+            parser.add_argument('--test', '-t', '--test=')
+            parser.add_argument('--criteria', '-c',)
+            parser.add_argument('--verbose' , '-v', action="count")
+    
+            args = parser.parse_args()
+            dataset_name = args.dataset_location[0]
+
+        head, tail = os.path.split(dataset_name)
         file_names = [ name for name in tail.split('.') ]
         
         file_names_length = len(file_names)
