@@ -58,7 +58,8 @@ class TestIMOSFileName(unittest.TestCase):
             self.addCleanup(nc_dataset.close)
         dogma = NetCDFDogma('nc', self.check.beliefs(), nc_dataset)
 
-        pair = DSPair(nc_dataset, dogma, ds_loc=nc_dataset_loc)
+        pair = DSPair(nc_dataset, dogma)
+        pair.ds_loc=nc_dataset_loc
         return pair
 
     #--------------------------------------------------------------------------------
