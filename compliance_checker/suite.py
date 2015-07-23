@@ -350,7 +350,7 @@ class CheckSuite(object):
                 raise StandardError("Unrecognized XML root element: %s" % xml_doc.tag)
         else:
             # no doc? try the dataset constructor
-            ds = Dataset(ds_str) 
+            ds = Dataset(ds_str)
 
         return ds
 
