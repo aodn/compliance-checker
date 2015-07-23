@@ -126,7 +126,8 @@ def find_data_variables(dataset, coordinate_variables, ancillary_variables):
     for name, var in dataset.variables.iteritems():
         if var not in coordinate_variables and var not in \
             ancillary_variables and var.dimensions and var not in \
-            auxiliary_coordinate_variables:
+            auxiliary_coordinate_variables \
+            and is_numeric(var.dtype):
 
             data_variables.append(var)
 
