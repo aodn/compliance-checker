@@ -400,15 +400,17 @@ class TestIMOS(unittest.TestCase):
     def test_check_data_variables(self):
         self.imos.setup(self.good_dataset)
         ret_val = self.imos.check_data_variables(self.good_dataset)
+        self.assertEqual(len(ret_val), 7)
+        for i in range(6):
+            self.assertTrue(ret_val[i].value)
 
-        for result in ret_val:
-            if 'check_dimension' in result.name:
-                if'LATITUDE' in result.name or 'LONGITUDE' in result.name or 'NOMINAL_DEPTH' in result.name:
-                    self.assertFalse(result.value)
-                else:
-                    self.assertTrue(result.value)
-            else:
-                self.assertTrue(result.value)
+        self.imos.setup(self.data_variable_dataset)
+        ret_val = self.imos.check_data_variables(self.data_variable_dataset)
+        self.assertEqual(len(ret_val), 5)
+        self.assertTrue(ret_val[0].value)
+        for i in range(1,5):
+            self.assertFalse(ret_val[i].value)
+
 
     def test_check_quality_control_variable_dimensions(self):
         self.imos.setup(self.test_variable_dataset)

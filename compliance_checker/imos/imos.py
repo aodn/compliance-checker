@@ -1140,7 +1140,9 @@ class IMOSCheck(BaseNCCheck):
     def check_data_variables(self, dataset):
         """
         Check data variable:
-            at least one data variable exisits
+            at least one data variable exists in the file
+            variable has at least one spatial or temporal dimension
+            attribute _FillValue exists
         """
         ret_val = []
         result_name = ('var', 'data_variable', 'check_data_variable_present')
@@ -1155,6 +1157,7 @@ class IMOSCheck(BaseNCCheck):
             required_dimensions = ['TIME', 'LATITUDE', 'LONGITUDE', 'DEPTH']
 
             for var in self._data_variables:
+                # check for spatial/temporal dimension
                 result_name = ('var', 'data_variable', var.name, 'check_dimension')
                 passed = True
                 reasoning = None
@@ -1172,66 +1175,16 @@ class IMOSCheck(BaseNCCheck):
                     reasoning =  ["dimension doesn't contain TIME, LATITUDE, LONGITUDE, DEPTH"]
 
                 result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
-
                 ret_val.append(result)
 
-                result_name = ('var', 'data_variable', var.name, 'units', 'check_attribute_type')
-                result = None
-                result = check_attribute_type((var.name,"units",),
-                                           basestring,
-                                           dataset,
-                                           IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                           result_name,
-                                           BaseCheck.HIGH,
-                                           None,
-                                           True)
-                if result is not None:
-                    ret_val.append(result)
-
-                result_name = ('var', 'data_variable', var.name, '_FillValue', \
-                                'check_attribute_type')
-                reasoning = ["Attribute type is not same as variable type"]
-                result = None
-                result = check_attribute_type((var.name,'_FillValue',),
-                                                var.datatype,
-                                                dataset,
-                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                                result_name,
-                                                BaseCheck.HIGH,
-                                                reasoning,
-                                                True)
-                if result is not None:
-                    ret_val.append(result)
-
-                result_name = ('var', 'data_variable', var.name, 'valid_min',\
-                               'check_attribute_type')
-                reasoning = ["Attribute type is not same as variable type"]
-                result = None
-                result = check_attribute_type((var.name,'valid_min',),
-                                                var.datatype,
-                                                dataset,
-                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                                result_name,
-                                                BaseCheck.HIGH,
-                                                reasoning,
-                                                True)
-                if result is not None:
-                    ret_val.append(result)
-
-                result_name = ('var', 'data_variable', var.name, 'valid_max',\
-                               'check_attribute_type')
-                reasoning = ["Attribute type is not same as variable type"]
-                result = None
-                result = check_attribute_type((var.name,'valid_max',),
-                                                var.datatype,
-                                                dataset,
-                                                IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                                result_name,
-                                                BaseCheck.HIGH,
-                                                reasoning,
-                                                True)
-                if result is not None:
-                    ret_val.append(result)
+                # check that _FillValue attribute exists
+                result_name = ('var', 'data_variable', var.name, '_FillValue')
+                reasoning = None
+                passed = hasattr(var, '_FillValue')
+                if not passed:
+                    reasoning = ["%s has no _FillValue attribute." % var.name]
+                result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+                ret_val.append(result)
 
         return ret_val
 
