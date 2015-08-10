@@ -10,6 +10,7 @@ from types import IntType
 import numpy as np
 from numpy import amax
 from numpy import amin
+import re
 
 from compliance_checker.cf.util import find_coord_vars, _possibleaxis, _possibleaxisunits
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
@@ -499,23 +500,54 @@ class IMOSCheck(BaseNCCheck):
 
     def check_acknowledgement(self, dataset):
         """
-        Check the global acknowledgement attribute and ensure it has expected
-        value
+        Check the global acknowledgement attribute and ensure it contains the
+        required text.
         """
         ret_val = []
-        result_name = ('globalattr', 'acknowledgement','check_attributes')
-        value = "Data was sourced from the Integrated Marine Observing System (IMOS)" \
-        " - IMOS is supported by the Australian Government through the National" \
-        " Collaborative Research Infrastructure Strategy (NCRIS) and the Super" \
-        " Science Initiative (SSI)"
+        old_pattern = ".*Any users of IMOS data are required to clearly" \
+                      " acknowledge the source of the material in the format:" \
+                      ".*" \
+                      "Data was sourced from the Integrated Marine Observing" \
+                      " System \(IMOS\) - IMOS is supported by the Australian" \
+                      " Government through the National Collaborative Research" \
+                      " Infrastructure Strategy \(NCRIS\) and the Super" \
+                      " Science Initiative \(SSI\)"
+        new_pattern = ".*Any users of IMOS data are required to clearly" \
+                      " acknowledge the source of the material derived from" \
+                      " IMOS in the format:" \
+                      ".*" \
+                      "Data was sourced from the Integrated Marine Observing" \
+                      " System \(IMOS\) - IMOS is a national collaborative" \
+                      " research infrastructure," \
+                      " supported by the Australian Government"
 
-        result = check_value(('acknowledgement',),
-                                value,
-                                IMOSCheck.OPERATOR_SUB_STRING,
-                                dataset,
-                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                result_name,
-                                BaseCheck.HIGH)
+        acknowledgement = getattr(dataset.dataset, 'acknowledgement', None)
+
+        # check the attribute is present
+        present = True
+        reasoning = None
+        if acknowledgement is None:
+            present = False
+            reasoning = ['Missing global attribute acknowledgement']
+        result_name = ('globalattr', 'acknowledgement', 'present')
+        result = Result(BaseCheck.HIGH, present, result_name, reasoning)
+
+        ret_val.append(result)
+
+        # skip the rest if attribute not there
+        if not result.value:
+            return ret_val
+
+        # test whether old or new substrings match the attribute value
+        passed = False
+        reasoning = ["acknowledgement string does't contain the required text"]
+        if re.match(old_pattern, acknowledgement) or \
+           re.match(new_pattern, acknowledgement):
+            passed = True
+            reasoning = None
+        result_name = ('globalattr', 'acknowledgement', 'value')
+        result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+
         ret_val.append(result)
 
         return ret_val
