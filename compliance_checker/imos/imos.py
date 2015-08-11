@@ -540,7 +540,7 @@ class IMOSCheck(BaseNCCheck):
 
         # test whether old or new substrings match the attribute value
         passed = False
-        reasoning = ["acknowledgement string does't contain the required text"]
+        reasoning = ["acknowledgement string doesn't contain the required text"]
         if re.match(old_pattern, acknowledgement) or \
            re.match(new_pattern, acknowledgement):
             passed = True
