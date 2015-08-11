@@ -294,6 +294,16 @@ class TestIMOS(unittest.TestCase):
         for result in ret_val:
             self.assertFalse(result.value)
 
+    def test_check_acknowledgement(self):
+        ret_val = self.imos.check_acknowledgement(self.good_dataset)
+        self.assertTrue(ret_val[0].value)
+        self.assertTrue(ret_val[1].value)
+
+        ret_val = self.imos.check_acknowledgement(self.bad_dataset)
+        self.assertTrue(ret_val[0].value)
+        self.assertFalse(ret_val[1].value)
+
+
     def test_check_variables_long_name(self):
         ret_val = self.imos.check_variables_long_name(self.good_dataset)
 
