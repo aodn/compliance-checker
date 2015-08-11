@@ -179,14 +179,14 @@ def check_present(name, data, check_type, result_name, check_priority, reasoning
         result (Result): result for the check
     """
     passed = True
+    reasoning_out = None
 
     if check_type == CHECK_GLOBAL_ATTRIBUTE:
         if not result_name:
             result_name = ('globalattr', name[0],'check_attribute_present')
         if name[0] not in data.dataset.ncattrs():
-            if not reasoning:
-                reasoning = ["Attribute is not present"]
-                passed = False
+            reasoning_out = reasoning or ["Attribute is not present"]
+            passed = False
 
     if check_type == CHECK_VARIABLE or\
         check_type == CHECK_VARIABLE_ATTRIBUTE:
@@ -196,8 +196,7 @@ def check_present(name, data, check_type, result_name, check_priority, reasoning
         variable = data.dataset.variables.get(name[0], None)
 
         if variable == None:
-            if not reasoning:
-                reasoning = ['Variable is not present']
+            reasoning_out = reasoning or ['Variable is not present']
             passed = False
 
         else:
@@ -205,11 +204,10 @@ def check_present(name, data, check_type, result_name, check_priority, reasoning
                 if not result_name:
                     result_name = ('var', name[0], name[1], 'check_variable_attribute_present')
                 if name[1] not in variable.ncattrs():
-                    if not reasoning:
-                        reasoning = ["Variable attribute is not present"]
+                    reasoning_out = reasoning or ["Variable attribute is not present"]
                     passed = False
 
-    result = Result(check_priority, passed, result_name, reasoning)
+    result = Result(check_priority, passed, result_name, reasoning_out)
 
     return result
 
