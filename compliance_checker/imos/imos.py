@@ -1166,13 +1166,14 @@ class IMOSCheck(BaseNCCheck):
                     for dimension in var.dimensions:
                         if dimension in required_dimensions:
                             passed = True
+                            break
                         else:
                             passed = False
                 else:
                     passed = False
 
                 if not passed:
-                    reasoning =  ["dimension doesn't contain TIME, LATITUDE, LONGITUDE, DEPTH"]
+                    reasoning =  ["data variable should have at least one of the dimensions TIME, LATITUDE, LONGITUDE, DEPTH"]
 
                 result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
                 ret_val.append(result)
