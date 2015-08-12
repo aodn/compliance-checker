@@ -320,10 +320,10 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result)
 
             if result.value:
-                geospatial_lat_min = getattr(dataset.dataset, "geospatial_vertical_min", None)
+                geospatial_vertical_min = getattr(dataset.dataset, "geospatial_vertical_min", None)
                 result_name = ('globalattr', 'geospatial_vertical_min','check_minimum_value')
                 result = check_value(('VERTICAL',),
-                                       geospatial_lat_min,
+                                       geospatial_vertical_min,
                                        IMOSCheck.OPERATOR_MIN,
                                        dataset,
                                        IMOSCheck.CHECK_VARIABLE,
@@ -343,10 +343,10 @@ class IMOSCheck(BaseNCCheck):
                 ret_val.append(result2)
 
             if result2.value:
-                geospatial_lat_max = getattr(dataset.dataset, "geospatial_vertical_max", None)
+                geospatial_vertical_max = getattr(dataset.dataset, "geospatial_vertical_max", None)
                 result_name = ('globalattr', 'geospatial_vertical_max','check_maximum_value')
                 result = check_value(('VERTICAL',),
-                                       geospatial_lat_max,
+                                       geospatial_vertical_max,
                                        IMOSCheck.OPERATOR_MAX,
                                        dataset,
                                        IMOSCheck.CHECK_VARIABLE,
