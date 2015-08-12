@@ -738,7 +738,7 @@ class IMOSCheck(BaseNCCheck):
                                     dataset,
                                     IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
                                     result_name,
-                                    BaseCheck.HIGH)
+                                    BaseCheck.MEDIUM)
 
             ret_val.append(result)
 
