@@ -68,69 +68,49 @@ class TestIMOS(unittest.TestCase):
 
     ### Test util functions
 
-    def test_util_check_present(self):
-        ds = self.good_dataset
+    def _test_util_check_present_generic(self, name, ds, check_type, reasoning=None):
+        result_name = ('result','name')
         weight = 1
-        result_name = ('result', 'name')
 
-        # global attribute
-        check_type = util.CHECK_GLOBAL_ATTRIBUTE
-        reasoning = ['attribute not present!']
-        result = util.check_present(('project',), ds, check_type, result_name, weight)
+        result = util.check_present(name, ds, check_type, result_name, weight)
         self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
         self.assertEqual(result.weight, weight)
         self.assertEqual(result.name, result_name)
-        self.assertFalse(result.msgs)
 
-        result = util.check_present(('project',), ds, check_type, result_name, weight, reasoning)
+        result = util.check_present(name, ds, check_type, result_name, weight, reasoning)
         self.assertTrue(result.value)
         self.assertFalse(result.msgs)
 
-        result = util.check_present(('idontexist',), ds, check_type, result_name, weight)
+        if len(name) == 1:
+            missing_name = ('idontexist',)
+        else:
+            missing_name = (name[0], 'idontexist')
+
+        result = util.check_present(missing_name, ds, check_type, result_name, weight)
         self.assertFalse(result.value)
         self.assertTrue(result.msgs)
 
-        result = util.check_present(('idontexist',), ds, check_type, result_name, weight, reasoning)
+        result = util.check_present(missing_name, ds, check_type, result_name, weight, reasoning)
         self.assertFalse(result.value)
         self.assertEqual(result.msgs, reasoning)
 
-        # variable
-        check_type = util.CHECK_VARIABLE
-        reasoning = ['variable not present!']
-        result = util.check_present(('TIME',), ds, check_type, result_name, weight)
-        self.assertTrue(result.value)
-        self.assertFalse(result.msgs)
 
-        result = util.check_present(('TIME',), ds, check_type, result_name, weight, reasoning)
-        self.assertTrue(result.value)
-        self.assertFalse(result.msgs)
+    def test_util_check_present(self):
+        self._test_util_check_present_generic(('project',),
+                                              self.good_dataset,
+                                              check_type = util.CHECK_GLOBAL_ATTRIBUTE,
+                                              reasoning = ['attribute missing!'])
 
-        result = util.check_present(('idontexist',), ds, check_type, result_name, weight)
-        self.assertFalse(result.value)
-        self.assertTrue(result.msgs)
+        self._test_util_check_present_generic(('TIME',),
+                                              self.good_dataset,
+                                              check_type = util.CHECK_VARIABLE,
+                                              reasoning = ['variable missing!'])
 
-        result = util.check_present(('idontexist',), ds, check_type, result_name, weight, reasoning)
-        self.assertFalse(result.value)
-        self.assertEqual(result.msgs, reasoning)
-
-        # variable attribute
-        check_type = util.CHECK_VARIABLE_ATTRIBUTE
-        reasoning = ['variable attribute not present!']
-        result = util.check_present(('TIME','units'), ds, check_type, result_name, weight)
-        self.assertTrue(result.value)
-        self.assertFalse(result.msgs)
-
-        result = util.check_present(('TIME','units'), ds, check_type, result_name, weight, reasoning)
-        self.assertTrue(result.value)
-        self.assertFalse(result.msgs)
-
-        result = util.check_present(('TIME','idontexist',), ds, check_type, result_name, weight)
-        self.assertFalse(result.value)
-        self.assertTrue(result.msgs)
-
-        result = util.check_present(('TIME','idontexist',), ds, check_type, result_name, weight, reasoning)
-        self.assertFalse(result.value)
-        self.assertEqual(result.msgs, reasoning)
+        self._test_util_check_present_generic(('TIME','units'),
+                                              self.good_dataset,
+                                              check_type = util.CHECK_VARIABLE_ATTRIBUTE,
+                                              reasoning = ['var attribute missing!'])
 
 
     ### Test compliance checks
