@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from compliance_checker.imos import IMOSCheck
+from compliance_checker.imos import util
 from compliance_checker.cf.util import is_vertical_coordinate, is_time_variable, units_convertible
 from compliance_checker.base import DSPair
 from wicken.netcdf_dogma import NetCDFDogma
@@ -64,6 +65,75 @@ class TestIMOS(unittest.TestCase):
     #--------------------------------------------------------------------------------
     # Compliance Tests
     #--------------------------------------------------------------------------------
+
+    ### Test util functions
+
+    def test_util_check_present(self):
+        ds = self.good_dataset
+        weight = 1
+        result_name = ('result', 'name')
+
+        # global attribute
+        check_type = util.CHECK_GLOBAL_ATTRIBUTE
+        reasoning = ['attribute not present!']
+        result = util.check_present(('project',), ds, check_type, result_name, weight)
+        self.assertTrue(result.value)
+        self.assertEqual(result.weight, weight)
+        self.assertEqual(result.name, result_name)
+        self.assertFalse(result.msgs)
+
+        result = util.check_present(('project',), ds, check_type, result_name, weight, reasoning)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+
+        result = util.check_present(('idontexist',), ds, check_type, result_name, weight)
+        self.assertFalse(result.value)
+        self.assertTrue(result.msgs)
+
+        result = util.check_present(('idontexist',), ds, check_type, result_name, weight, reasoning)
+        self.assertFalse(result.value)
+        self.assertEqual(result.msgs, reasoning)
+
+        # variable
+        check_type = util.CHECK_VARIABLE
+        reasoning = ['variable not present!']
+        result = util.check_present(('TIME',), ds, check_type, result_name, weight)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+
+        result = util.check_present(('TIME',), ds, check_type, result_name, weight, reasoning)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+
+        result = util.check_present(('idontexist',), ds, check_type, result_name, weight)
+        self.assertFalse(result.value)
+        self.assertTrue(result.msgs)
+
+        result = util.check_present(('idontexist',), ds, check_type, result_name, weight, reasoning)
+        self.assertFalse(result.value)
+        self.assertEqual(result.msgs, reasoning)
+
+        # variable attribute
+        check_type = util.CHECK_VARIABLE_ATTRIBUTE
+        reasoning = ['variable attribute not present!']
+        result = util.check_present(('TIME','units'), ds, check_type, result_name, weight)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+
+        result = util.check_present(('TIME','units'), ds, check_type, result_name, weight, reasoning)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+
+        result = util.check_present(('TIME','idontexist',), ds, check_type, result_name, weight)
+        self.assertFalse(result.value)
+        self.assertTrue(result.msgs)
+
+        result = util.check_present(('TIME','idontexist',), ds, check_type, result_name, weight, reasoning)
+        self.assertFalse(result.value)
+        self.assertEqual(result.msgs, reasoning)
+
+
+    ### Test compliance checks
 
     def test_check_global_attributes(self):
         ret_val = self.imos.check_global_attributes(self.bad_dataset)
