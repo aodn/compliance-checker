@@ -182,32 +182,28 @@ def check_present(name, data, check_type, result_name, check_priority, reasoning
     reasoning_out = None
 
     if check_type == CHECK_GLOBAL_ATTRIBUTE:
-        if not result_name:
-            result_name = ('globalattr', name[0],'check_attribute_present')
+        result_name_out = result_name or ('globalattr', name[0],'present')
         if name[0] not in data.dataset.ncattrs():
-            reasoning_out = reasoning or ["Attribute is not present"]
+            reasoning_out = reasoning or ["Attribute %s not present" % name[0]]
             passed = False
 
     if check_type == CHECK_VARIABLE or\
         check_type == CHECK_VARIABLE_ATTRIBUTE:
-        if not result_name:
-            result_name = ('var', name[0],'check_variable_present')
+        result_name_out = result_name or ('var', name[0],'present')
 
         variable = data.dataset.variables.get(name[0], None)
 
         if variable == None:
-            reasoning_out = reasoning or ['Variable is not present']
+            reasoning_out = reasoning or ['Variable %s not present' % name[0]]
             passed = False
 
-        else:
-            if check_type == CHECK_VARIABLE_ATTRIBUTE:
-                if not result_name:
-                    result_name = ('var', name[0], name[1], 'check_variable_attribute_present')
+        elif check_type == CHECK_VARIABLE_ATTRIBUTE:
+                result_name_out = result_name or ('var', name[0], name[1], 'present')
                 if name[1] not in variable.ncattrs():
-                    reasoning_out = reasoning or ["Variable attribute is not present"]
+                    reasoning_out = reasoning or ["Variable attribute %s:%s not present" % tuple(name)]
                     passed = False
 
-    result = Result(check_priority, passed, result_name, reasoning_out)
+    result = Result(check_priority, passed, result_name_out, reasoning_out)
 
     return result
 
