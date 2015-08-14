@@ -207,7 +207,7 @@ def check_present(name, data, check_type, result_name, check_priority, reasoning
 
     return result
 
-def check_value(name, value, operator, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
+def check_value(name, value, operator, ds, check_type, result_name, check_priority, reasoning=None, skip_check_present=False):
     """
     Help method to compare attribute to value or a variable
     to a value. It also returns a Result object based on the whether
@@ -224,19 +224,20 @@ def check_value(name, value, operator, ds, check_type, result_name, check_priori
         result_name: the result name to display
         check_priority (int): the check priority
         reasoning (str): reason string for failed check
-        skip_check_presnet (boolean): flag to allow check only performed
+        skip_check_present (boolean): flag to allow check only performed
                                      if attribute is present
     return:
         result (Result): result for the check
     """
     result = check_present(name, ds, check_type,
                            result_name,
-                           BaseCheck.HIGH)
+                           check_priority)
 
     if result.value:
         result = None
         retrieved_value = None
         passed = True
+        reasoning_out = None
 
         if check_type == CHECK_GLOBAL_ATTRIBUTE:
             retrieved_value = getattr(ds.dataset, name[0])
@@ -250,66 +251,58 @@ def check_value(name, value, operator, ds, check_type, result_name, check_priori
 
         if operator == OPERATOR_EQUAL:
             if retrieved_value != value:
-                if not reasoning:
-                    reasoning = ["Attribute value is not equal to " + str(value)]
-                    passed = False
+                passed = False
+                reasoning_out = reasoning or ["Attribute value is not equal to " + str(value)]
 
         if operator == OPERATOR_MIN:
             min_value = amin(variable.__array__())
 
             if min_value != float(value):
                 passed = False
-                if not reasoning:
-                    reasoning = ["Minimum value is not same as the attribute value"]
+                reasoning_out = reasoning or ["Minimum value is not same as the attribute value"]
 
         if operator == OPERATOR_MAX:
             max_value = amax(variable.__array__())
             if max_value != float(value):
                 passed = False
-                if not reasoning:
-                    reasoning = ["Maximum value is not same as the attribute value"]
+                reasoning_out = reasoning or ["Maximum value is not same as the attribute value"]
 
         if operator == OPERATOR_DATE_FORMAT:
             try:
                 datetime.datetime.strptime(retrieved_value, value)
             except ValueError:
                 passed = False
-                if not reasoning:
-                    reasoning = ["Datetime format is not correct"]
+                reasoning_out = reasoning or ["Datetime format is not correct"]
 
         if operator == OPERATOR_SUB_STRING:
             if value not in retrieved_value:
                 passed = False
-                if not reasoning:
-                    reasoning = ["Required substring is not contained"]
+                reasoning_out = reasoning or ["Required substring is not contained"]
 
         if operator == OPERATOR_CONVERTIBLE:
             if not units_convertible(retrieved_value, value):
                 passed = False
-                if not reasoning:
-                    reasoning = ["Value is not convertible"]
+                reasoning_out = reasoning or ["Value is not convertible"]
 
         if operator == OPERATOR_EMAIL:
             if not is_valid_email(retrieved_value):
                 passed = False
-                if not reasoning:
-                    reasoning = ["Value is not a valid email"]
+                reasoning_out = reasoning or ["Value is not a valid email"]
 
         if operator == OPERATOR_WITHIN:
             if retrieved_value not in value:
                 passed = False
-                if not reasoning:
-                    reasoning = ["Value is not in the expected range"]
+                reasoning_out = reasoning or ["Value is not in the expected range"]
 
-        result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
+        result = Result(check_priority, passed, result_name, reasoning_out)
 
     else:
-        if skip_check_presnet:
+        if skip_check_present:
             result = None
 
     return result
 
-def check_attribute_type(name, expected_type, ds, check_type, result_name, check_priority, reasoning=None, skip_check_presnet=False):
+def check_attribute_type(name, expected_type, ds, check_type, result_name, check_priority, reasoning=None, skip_check_present=False):
     """
     Check global data attribute and ensure it has the right type.
     params:
@@ -321,7 +314,7 @@ def check_attribute_type(name, expected_type, ds, check_type, result_name, check
         result_name: the result name to display
         check_priority (int): the check priority
         reasoning (str): reason string for failed check
-        skip_check_presnet (boolean): flag to allow check only performed
+        skip_check_present (boolean): flag to allow check only performed
                                      if attribute is present
     return:
         result (Result): result for the check
@@ -364,7 +357,7 @@ def check_attribute_type(name, expected_type, ds, check_type, result_name, check
         else:
             result = Result(check_priority, True, result_name, None)
     else:
-        if skip_check_presnet:
+        if skip_check_present:
             result = None
 
     return result
