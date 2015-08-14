@@ -12,6 +12,7 @@ from pkg_resources import resource_filename
 import unittest
 import os
 import re
+import numpy as np
 
 
 static_files = {
@@ -217,6 +218,57 @@ class TestIMOS(unittest.TestCase):
                                             self.good_dataset,
                                             util.CHECK_GLOBAL_ATTRIBUTE,
                                             reasoning=['invalid value'])
+
+
+    def _test_check_attribute_type_generic(self, name, expected_type, bad_type, ds, check_type, reasoning=None,
+                                           skip_check_present=True):
+        result_name = ('result', 'name')
+        weight = -999   # Check that return weight hasn't been hard-coded!
+
+        result = util.check_attribute_type(name, expected_type, ds, check_type, result_name, weight,
+                                           skip_check_present)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+        self.assertEqual(result.weight, weight)
+        self.assertEqual(result.name, result_name)
+
+        result = util.check_attribute_type(name, expected_type, ds, check_type, result_name, weight, reasoning,
+                                           skip_check_present)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+
+        result = util.check_attribute_type(name, bad_type, ds, check_type, result_name, weight,
+                                           skip_check_present)
+        self.assertFalse(result.value)
+        self.assertTrue(result.msgs)
+
+        result = util.check_attribute_type(name, bad_type, ds, check_type, result_name, weight, reasoning,
+                                           skip_check_present)
+        self.assertFalse(result.value)
+        self.assertEqual(result.msgs, reasoning)
+
+
+    def test_check_attribute_type(self):
+        result = util.check_attribute_type(('idontexist',), basestring,
+                                           self.good_dataset,
+                                           util.CHECK_GLOBAL_ATTRIBUTE,
+                                           ('name'), 1, skip_check_present = True)
+        self.assertIsNone(result)
+
+        self._test_check_attribute_type_generic(('title',), basestring, int,
+                                                self.good_dataset,
+                                                util.CHECK_GLOBAL_ATTRIBUTE,
+                                                reasoning=['title not string'])
+
+        self._test_check_attribute_type_generic(('TEMP',), np.float32, np.int,
+                                                self.good_dataset,
+                                                util.CHECK_VARIABLE,
+                                                reasoning=['TEMP not float type'])
+
+        self._test_check_attribute_type_generic(('TIME','valid_min'), np.float64, np.float32,
+                                                self.good_dataset,
+                                                util.CHECK_VARIABLE,
+                                                reasoning=['TIME:valid_min bad type'])
 
 
     ### Test compliance checks
