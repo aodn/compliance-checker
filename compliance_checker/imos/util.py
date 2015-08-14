@@ -241,58 +241,73 @@ def check_value(name, value, operator, ds, check_type, result_name, check_priori
 
         if check_type == CHECK_GLOBAL_ATTRIBUTE:
             retrieved_value = getattr(ds.dataset, name[0])
+            retrieved_name = name[0]
 
         if check_type == CHECK_VARIABLE:
             variable = ds.dataset.variables.get(name[0], None)
+            retrieved_name = name[0]
 
         if check_type == CHECK_VARIABLE_ATTRIBUTE:
             variable = ds.dataset.variables.get(name[0], None)
             retrieved_value = getattr(variable, name[1])
+            retrieved_name = '%s:%s' % name
 
         if operator == OPERATOR_EQUAL:
             if retrieved_value != value:
                 passed = False
-                reasoning_out = reasoning or ["Attribute value is not equal to " + str(value)]
+                reasoning_out = reasoning or \
+                                ["Attribute %s should be equal to '%s'" % (retrieved_name, str(value))]
 
         if operator == OPERATOR_MIN:
             min_value = amin(variable.__array__())
 
             if min_value != float(value):
                 passed = False
-                reasoning_out = reasoning or ["Minimum value is not same as the attribute value"]
+                reasoning_out = reasoning or \
+                                ["Minimum value of %s (%f) does not match attributes (%f)" % \
+                                 (retrieved_name, min_value, float(value))]
 
         if operator == OPERATOR_MAX:
             max_value = amax(variable.__array__())
             if max_value != float(value):
                 passed = False
-                reasoning_out = reasoning or ["Maximum value is not same as the attribute value"]
+                reasoning_out = reasoning or \
+                                ["Maximum value of %s (%f) does not match attributes (%f)" % \
+                                 (retrieved_name, max_value, float(value))]
 
         if operator == OPERATOR_DATE_FORMAT:
             try:
                 datetime.datetime.strptime(retrieved_value, value)
             except ValueError:
                 passed = False
-                reasoning_out = reasoning or ["Datetime format is not correct"]
+                reasoning_out = reasoning or \
+                                ["Attribute %s is not in correct date/time format (%s)" % \
+                                 (retrieved_name, value)]
 
         if operator == OPERATOR_SUB_STRING:
             if value not in retrieved_value:
                 passed = False
-                reasoning_out = reasoning or ["Required substring is not contained"]
+                reasoning_out = reasoning or \
+                                ["Attribute %s should contain the substring '%s'" % \
+                                 (retrieved_name, value)]
 
         if operator == OPERATOR_CONVERTIBLE:
             if not units_convertible(retrieved_value, value):
                 passed = False
-                reasoning_out = reasoning or ["Value is not convertible"]
+                reasoning_out = reasoning or \
+                                ["Units %s should be equivalent to %s" % (retrieved_name, value)]
 
         if operator == OPERATOR_EMAIL:
             if not is_valid_email(retrieved_value):
                 passed = False
-                reasoning_out = reasoning or ["Value is not a valid email"]
+                reasoning_out = reasoning or ["Attribute %s is not a valid email address" % \
+                                              retrieved_name]
 
         if operator == OPERATOR_WITHIN:
             if retrieved_value not in value:
                 passed = False
-                reasoning_out = reasoning or ["Value is not in the expected range"]
+                reasoning_out = reasoning or ["Attribute %s is not in the expected range (%s)" % \
+                                              (retrieved_name, str(value))]
 
         result = Result(check_priority, passed, result_name, reasoning_out)
 
@@ -326,12 +341,15 @@ def check_attribute_type(name, expected_type, ds, check_type, result_name, check
     if result.value:
         if check_type == CHECK_GLOBAL_ATTRIBUTE:
             attribute_value = getattr(ds.dataset, name[0])
+            attribute_name = 'Attribute ' + name[0]
 
         if check_type == CHECK_VARIABLE_ATTRIBUTE:
             attribute_value = getattr(ds.dataset.variables[name[0]], name[1])
+            attribute_name = 'Attribute %s:%s' % name
 
         if check_type == CHECK_VARIABLE:
             attribute_value = ds.dataset.variables[name[0]]
+            attribute_name = 'Variable ' + name[0]
 
         dtype = getattr(attribute_value, 'dtype', None)
         passed = True
@@ -352,7 +370,7 @@ def check_attribute_type(name, expected_type, ds, check_type, result_name, check
 
         if not passed:
             if not reasoning:
-                reasoning = ["Attribute type is not equal to " + str(expected_type)]
+                reasoning = ["%s should have type %s" % (attribute_name, str(expected_type))]
             result = Result(check_priority, False, result_name, reasoning)
         else:
             result = Result(check_priority, True, result_name, None)
