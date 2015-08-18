@@ -732,13 +732,16 @@ class IMOSCheck(BaseNCCheck):
             ret_val.append(result)
 
             result_name = ('var', 'TIME', 'units', 'check_attribute_value')
+            reasoning = ["The TIME attribute units doesn't match the IMOS recommended units 'days since 1950-01-01 00:00:00 UTC'"]
+
             result = check_value(('TIME','units',),
                                     'days since 1950-01-01 00:00:00 UTC',
                                     IMOSCheck.OPERATOR_EQUAL,
                                     dataset,
                                     IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
                                     result_name,
-                                    BaseCheck.HIGH)
+                                    BaseCheck.MEDIUM,
+                                    reasoning)
 
             ret_val.append(result)
 
