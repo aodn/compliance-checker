@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from compliance_checker.imos import IMOSCheck
+from compliance_checker.imos import util
 from compliance_checker.cf.util import is_vertical_coordinate, is_time_variable, units_convertible
 from compliance_checker.base import DSPair
 from wicken.netcdf_dogma import NetCDFDogma
@@ -11,6 +12,7 @@ from pkg_resources import resource_filename
 import unittest
 import os
 import re
+import numpy as np
 
 
 static_files = {
@@ -64,6 +66,212 @@ class TestIMOS(unittest.TestCase):
     #--------------------------------------------------------------------------------
     # Compliance Tests
     #--------------------------------------------------------------------------------
+
+    ### Test util functions
+
+    def _test_util_check_present_generic(self, name, ds, check_type, reasoning=None):
+        result_name = ('result','name')
+        weight = 1
+
+        result = util.check_present(name, ds, check_type, result_name, weight)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+        self.assertEqual(result.weight, weight)
+        self.assertEqual(result.name, result_name)
+
+        result = util.check_present(name, ds, check_type, result_name, weight, reasoning)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+
+        if len(name) == 1:
+            missing_name = ('idontexist',)
+        else:
+            missing_name = (name[0], 'idontexist')
+
+        result = util.check_present(missing_name, ds, check_type, result_name, weight)
+        self.assertFalse(result.value)
+        self.assertTrue(result.msgs)
+
+        result = util.check_present(missing_name, ds, check_type, result_name, weight, reasoning)
+        self.assertFalse(result.value)
+        self.assertEqual(result.msgs, reasoning)
+
+
+    def test_util_check_present(self):
+        self._test_util_check_present_generic(('project',),
+                                              self.good_dataset,
+                                              check_type = util.CHECK_GLOBAL_ATTRIBUTE,
+                                              reasoning = ['attribute missing!'])
+
+        self._test_util_check_present_generic(('TIME',),
+                                              self.good_dataset,
+                                              check_type = util.CHECK_VARIABLE,
+                                              reasoning = ['variable missing!'])
+
+        self._test_util_check_present_generic(('TIME','units'),
+                                              self.good_dataset,
+                                              check_type = util.CHECK_VARIABLE_ATTRIBUTE,
+                                              reasoning = ['var attribute missing!'])
+
+
+    def _test_util_check_value_generic(self, name, value, bad_value, operator, ds, check_type,
+                                       reasoning=None, skip_check_present=True):
+        result_name = ('result', 'name')
+        weight = -999   # Check that return weight hasn't been hard-coded!
+        result = util.check_value(name, value, operator, ds, check_type, result_name, weight,
+                                  skip_check_present)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+        self.assertEqual(result.weight, weight)
+        self.assertEqual(result.name, result_name)
+
+        result = util.check_value(name, value, operator, ds, check_type, result_name, weight, reasoning,
+                                  skip_check_present)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+        self.assertEqual(result.weight, weight)
+        self.assertEqual(result.name, result_name)
+
+        if bad_value is None: return  # skip bad value test (for email check)
+
+        result = util.check_value(name, bad_value, operator, ds, check_type, result_name, weight,
+                                  skip_check_present)
+        self.assertFalse(result.value)
+        self.assertTrue(result.msgs)
+        self.assertEqual(result.weight, weight)
+        self.assertEqual(result.name, result_name)
+
+        result = util.check_value(name, bad_value, operator, ds, check_type, result_name, weight, reasoning,
+                                  skip_check_present)
+        self.assertFalse(result.value)
+        self.assertEqual(result.msgs, reasoning)
+        self.assertEqual(result.weight, weight)
+        self.assertEqual(result.name, result_name)
+
+    def test_util_check_value(self):
+        result = util.check_value(('idontexist',), 'value', util.OPERATOR_EQUAL,
+                                  self.good_dataset, util.CHECK_GLOBAL_ATTRIBUTE,
+                                  ('name'), 1, skip_check_present=True)
+        self.assertIsNone(result)
+
+        self._test_util_check_value_generic(('Conventions',), 'CF-1.6,IMOS-1.3', 'bad',
+                                            util.OPERATOR_EQUAL,
+                                            self.good_dataset,
+                                            util.CHECK_GLOBAL_ATTRIBUTE,
+                                            reasoning=['global attr bad value'])
+
+        self._test_util_check_value_generic(('TIME','valid_min'), 0., -999.,
+                                            util.OPERATOR_EQUAL,
+                                            self.good_dataset,
+                                            util.CHECK_VARIABLE_ATTRIBUTE,
+                                            reasoning=['global attr bad value'])
+
+        geospatial_lat_min = self.good_dataset.dataset.geospatial_lat_min
+        self._test_util_check_value_generic(('LATITUDE',), geospatial_lat_min, -1234.,
+                                            util.OPERATOR_MIN,
+                                            self.good_dataset,
+                                            util.CHECK_VARIABLE,
+                                            reasoning=['min value is wrong'],
+                                            skip_check_present=True)
+
+        geospatial_lat_max = self.good_dataset.dataset.geospatial_lat_max
+        self._test_util_check_value_generic(('LATITUDE',), geospatial_lat_max, -1234.,
+                                            util.OPERATOR_MAX,
+                                            self.good_dataset,
+                                            util.CHECK_VARIABLE,
+                                            reasoning=['max value is wrong'],
+                                            skip_check_present=True)
+
+        self._test_util_check_value_generic(('date_created',), '%Y-%m-%dT%H:%M:%SZ', '%Y/%m/%d',
+                                            util.OPERATOR_DATE_FORMAT,
+                                            self.good_dataset,
+                                            util.CHECK_GLOBAL_ATTRIBUTE,
+                                            reasoning=['bad date format'])
+
+        self._test_util_check_value_generic(('Conventions',), 'CF-1.6', 'bad',
+                                            util.OPERATOR_SUB_STRING,
+                                            self.good_dataset,
+                                            util.CHECK_GLOBAL_ATTRIBUTE,
+                                            reasoning=['global attr bad value'])
+
+        self._test_util_check_value_generic(('TEMP','units'), 'Kelvin', 'metre',
+                                            util.OPERATOR_CONVERTIBLE,
+                                            self.good_dataset,
+                                            util.CHECK_VARIABLE_ATTRIBUTE,
+                                            reasoning=['bad units'])
+
+        self._test_util_check_value_generic(('data_centre_email',), '', None,
+                                            util.OPERATOR_EMAIL,
+                                            self.good_dataset,
+                                            util.CHECK_GLOBAL_ATTRIBUTE,
+                                            reasoning=['bad email address'])
+        result = util.check_value(('data_centre_email',), '',
+                                  util.OPERATOR_EMAIL,
+                                  self.bad_dataset,
+                                  util.CHECK_GLOBAL_ATTRIBUTE,
+                                  ('name'), 1, skip_check_present=True)
+        self.assertFalse(result.value)
+        self.assertTrue(result.msgs)
+
+        self._test_util_check_value_generic(('quality_control_set',), [1,2,3,4], [-8,-9],
+                                            util.OPERATOR_WITHIN,
+                                            self.good_dataset,
+                                            util.CHECK_GLOBAL_ATTRIBUTE,
+                                            reasoning=['invalid value'])
+
+
+    def _test_check_attribute_type_generic(self, name, expected_type, bad_type, ds, check_type, reasoning=None,
+                                           skip_check_present=True):
+        result_name = ('result', 'name')
+        weight = -999   # Check that return weight hasn't been hard-coded!
+
+        result = util.check_attribute_type(name, expected_type, ds, check_type, result_name, weight,
+                                           skip_check_present)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+        self.assertEqual(result.weight, weight)
+        self.assertEqual(result.name, result_name)
+
+        result = util.check_attribute_type(name, expected_type, ds, check_type, result_name, weight, reasoning,
+                                           skip_check_present)
+        self.assertTrue(result.value)
+        self.assertFalse(result.msgs)
+
+        result = util.check_attribute_type(name, bad_type, ds, check_type, result_name, weight,
+                                           skip_check_present)
+        self.assertFalse(result.value)
+        self.assertTrue(result.msgs)
+
+        result = util.check_attribute_type(name, bad_type, ds, check_type, result_name, weight, reasoning,
+                                           skip_check_present)
+        self.assertFalse(result.value)
+        self.assertEqual(result.msgs, reasoning)
+
+
+    def test_check_attribute_type(self):
+        result = util.check_attribute_type(('idontexist',), basestring,
+                                           self.good_dataset,
+                                           util.CHECK_GLOBAL_ATTRIBUTE,
+                                           ('name'), 1, skip_check_present = True)
+        self.assertIsNone(result)
+
+        self._test_check_attribute_type_generic(('title',), basestring, int,
+                                                self.good_dataset,
+                                                util.CHECK_GLOBAL_ATTRIBUTE,
+                                                reasoning=['title not string'])
+
+        self._test_check_attribute_type_generic(('TEMP',), np.float32, np.int,
+                                                self.good_dataset,
+                                                util.CHECK_VARIABLE,
+                                                reasoning=['TEMP not float type'])
+
+        self._test_check_attribute_type_generic(('TIME','valid_min'), np.float64, np.float32,
+                                                self.good_dataset,
+                                                util.CHECK_VARIABLE,
+                                                reasoning=['TIME:valid_min bad type'])
+
+
+    ### Test compliance checks
 
     def test_check_global_attributes(self):
         ret_val = self.imos.check_global_attributes(self.bad_dataset)
