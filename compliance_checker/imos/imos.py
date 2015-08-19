@@ -4,13 +4,10 @@ Compliance Test Suite for the Integrated Marine Observing System
 http://www.imos.org.au/
 '''
 
-import datetime
-from types import IntType
-
 import numpy as np
-from numpy import amax
-from numpy import amin
 import re
+from datetime import datetime
+from cf_units import date2num
 
 from compliance_checker.cf.util import find_coord_vars, _possibleaxis, _possibleaxisunits
 from compliance_checker.base import BaseCheck, BaseNCCheck, Result
@@ -358,8 +355,8 @@ class IMOSCheck(BaseNCCheck):
 
     def check_time_coverage(self, dataset):
         """
-        Check the global attributes time_coverage_start/time_coverage_end whether
-        match format 'YYYY-MM-DDThh:mm:ssZ'
+        Check the global attributes time_coverage_start/time_coverage_end
+        approximately match range in data and format 'YYYY-MM-DDThh:mm:ssZ'
         """
         ret_val = []
         result_name = ('globalattr', 'time_coverage_start','check_date_format')
@@ -369,31 +366,68 @@ class IMOSCheck(BaseNCCheck):
                                 BaseCheck.HIGH)
 
         if result.value:
+            date_attribute_format = '%Y-%m-%dT%H:%M:%SZ'
+
+            time_var = dataset.dataset.variables.get('TIME', None)
+            time_min = np.amin(time_var.__array__())
+            time_max = np.amax(time_var.__array__())
+
+            time_units = getattr(time_var, "units", None)
+            time_calendar = getattr(time_var, "calendar", "gregorian")
+
             results = self._check_str_type(dataset, 'time_coverage_start')
             result = results[0]
             if result.value:
                 result_name = ('globalattr', 'time_coverage_start','check_date_format')
                 result = check_value(('time_coverage_start',),
-                                    '%Y-%m-%dT%H:%M:%SZ',
+                                    date_attribute_format,
                                     IMOSCheck.OPERATOR_DATE_FORMAT,
                                     dataset,
                                     IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                     result_name,
                                     BaseCheck.HIGH)
-            ret_val.append(result)
+            if result: 
+                ret_val.append(result)
+
+            if result.value:
+                time_coverage_start_string = getattr(dataset.dataset, "time_coverage_start", None)
+                time_coverage_start_datetime = datetime.strptime(time_coverage_start_string, date_attribute_format)
+                time_coverage_start = date2num(time_coverage_start_datetime, time_units, time_calendar)
+                result_name = ('globalattr', 'time_coverage_start','match_min_TIME')
+                reasoning = None
+                min_pass = np.isclose(time_min, time_coverage_start)
+                if not min_pass:
+                    reasoning = ["Attribute time_coverage_start value doesn't match the minimum TIME value"]
+
+                result = Result(BaseCheck.HIGH, min_pass, result_name, reasoning)
+                ret_val.append(result)
 
             results = self._check_str_type(dataset, 'time_coverage_end')
             result = results[0]
             if result.value:
                 result_name = ('globalattr', 'time_coverage_end','check_date_format')
                 result = check_value(('time_coverage_end',),
-                                    '%Y-%m-%dT%H:%M:%SZ',
+                                    date_attribute_format,
                                     IMOSCheck.OPERATOR_DATE_FORMAT,
                                     dataset,
                                     IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
                                     result_name,
                                     BaseCheck.HIGH)
-            ret_val.append(result)
+            if result:
+                ret_val.append(result)
+
+            if result.value:
+                time_coverage_end_string = getattr(dataset.dataset, "time_coverage_end", None)
+                time_coverage_end_datetime = datetime.strptime(time_coverage_end_string, date_attribute_format)
+                time_coverage_end = date2num(time_coverage_end_datetime, time_units, time_calendar)
+                result_name = ('globalattr', 'time_coverage_end','match_max_TIME')
+                reasoning = None
+                max_pass = np.isclose(time_max, time_coverage_end)
+                if not max_pass:
+                    reasoning = ["Attribute time_coverage_end value doesn't match the maximum TIME value"]
+
+                result = Result(BaseCheck.HIGH, max_pass, result_name, reasoning)
+                ret_val.append(result)
 
         return ret_val
 
