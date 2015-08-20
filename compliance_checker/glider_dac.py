@@ -208,8 +208,7 @@ class GliderCheck(BaseNCCheck):
             'source',
             'standard_name_vocabulary',
             'summary',
-            'title',
-            'wmo_id'
+            'title'
         ]
         level = BaseCheck.MEDIUM
         out_of = 0
@@ -233,6 +232,21 @@ class GliderCheck(BaseNCCheck):
                 messages.append('%s global attribute can not be empty' % field)
         
         return self.make_result(level, score, out_of, 'Required Global Attributes', messages)
+
+    def check_wmo(self, ds):
+        '''
+        Verifies that the data has a WMO ID but not necessarily filled out
+        '''
+        level = BaseCheck.MEDIUM
+        score = 0
+        out_of = 1
+        messages = []
+        test = hasattr(ds.dataset, 'wmo_id')
+        score += int(test)
+        if not test:
+            messages.append("WMO ID is a required attribute but can be empty if the dataset doesn't have a WMO ID")
+
+        return self.make_result(level, score, out_of, 'WMO ID', messages)
 
     def check_summary(self, ds):
         level = BaseCheck.MEDIUM
@@ -529,7 +543,7 @@ class GliderCheck(BaseNCCheck):
             test = nc_var.dtype.str == '<f8'
             score += int(test)
             if not test:
-                messages.append('%s variable is incorrect data type')
+                messages.append('%s variable is incorrect data type' % var)
 
             for field in required_fields:
                 if not hasattr(nc_var, field):
@@ -539,6 +553,30 @@ class GliderCheck(BaseNCCheck):
 
             score += 1
         return self.make_result(level, score, out_of, 'CTD Variables', messages)
+
+    def check_standard_names(self, ds):
+        '''
+        Verifies that the standard names are correct.
+        '''
+        level = BaseCheck.MEDIUM
+        out_of = 1
+        score = 0
+        messages = []
+        std_names = {
+            'salinity' : 'sea_water_practical_salinity'
+        }
+
+        for var in std_names:
+            if var not in ds.dataset.variables:
+                messages.append("Can't verify standard name for %s: %s is missing." % (var, var))
+                continue
+            nc_var = ds.dataset.variables[var]
+            test = getattr(nc_var, 'standard_name', None) == std_names[var]
+            score += int(test)
+            if not test:
+                messages.append("Invalid standard name for %s: %s" % (var, getattr(nc_var, 'standard_name', '')))
+
+        return self.make_result(level, score, out_of, 'Standard Names', messages)
 
 
     def check_profile_vars(self, ds):
