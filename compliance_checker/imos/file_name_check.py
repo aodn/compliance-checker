@@ -38,11 +38,13 @@ class IMOSFileNameCheck(BaseNCCheck):
             dataset_name = ds.ds_loc
         else:
             parser = argparse.ArgumentParser()
-            parser.add_argument('dataset_location', nargs=1)
-            parser.add_argument('--test', '-t', '--test=')
-            parser.add_argument('--criteria', '-c',)
+            parser.add_argument('--test', '-t', '--test=', '-t=', action='append')
+            parser.add_argument('--criteria', '-c', nargs='?', default='normal')
             parser.add_argument('--verbose' , '-v', action="count")
-    
+            parser.add_argument('-f', '--format', default='text')
+            parser.add_argument('-o', '--output', default='-', action='store')
+            parser.add_argument('dataset_location', nargs='+')
+
             args = parser.parse_args()
             dataset_name = args.dataset_location[0]
 
