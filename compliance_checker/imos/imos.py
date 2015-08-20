@@ -64,6 +64,29 @@ class IMOSCheck(BaseNCCheck):
 
         self._quality_control_variables = find_quality_control_variables(dataset.dataset)
 
+    def _check_str_type(self, dataset, name):
+        """
+        Check the global attribute has string type
+
+        params:
+            name (str): attribute name
+        return:
+            result (list): a list of Result objects
+        """
+        ret_val = []
+        result_name = ('globalattr', name, 'check_atttribute_type')
+        reasoning = ["Attribute type is not string"]
+        result = check_attribute_type((name,),
+                                      basestring,
+                                      dataset,
+                                      IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                      result_name,
+                                      BaseCheck.HIGH,
+                                      reasoning,
+                                      False)
+        ret_val.append(result)
+        return ret_val
+
     def check_global_attributes(self, dataset):
         """
         Check to ensure all global string attributes are not empty.
@@ -410,41 +433,17 @@ class IMOSCheck(BaseNCCheck):
         """
         ret_val = []
 
-        result_name = ('globalattr', 'date_created','check_date_format')
-        result = check_value(('date_created',),
-                                '%Y-%m-%dT%H:%M:%SZ',
-                                IMOSCheck.OPERATOR_DATE_FORMAT,
-                                dataset,
-                                IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                result_name,
-                                BaseCheck.HIGH)
-        ret_val.append(result)
-
-        return ret_val
-
-    def _check_str_type(self, dataset, name):
-        """
-        Check the global attribute has string type
-
-        params:
-            name (str): attribute name
-        return:
-            result (list): a list of Result objects
-        """
-        ret_val = []
-
-        result_name = ('globalattr', name, 'check_atttribute_type')
-        reasoning = ["Attribute type is not string"]
-
-        result = check_attribute_type((name,),
-                                         basestring,
-                                         dataset,
-                                         IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                         result_name,
-                                         BaseCheck.HIGH,
-                                         reasoning,
-                                         False)
-
+        results = self._check_str_type(dataset, 'date_created')
+        result = results[0]
+        if result.value:
+            result_name = ('globalattr', 'date_created','check_date_format')
+            result = check_value(('date_created',),
+                                 '%Y-%m-%dT%H:%M:%SZ',
+                                 IMOSCheck.OPERATOR_DATE_FORMAT,
+                                 dataset,
+                                 IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                 result_name,
+                                 BaseCheck.HIGH)
         ret_val.append(result)
 
         return ret_val
