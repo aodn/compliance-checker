@@ -171,8 +171,9 @@ class TestCF(unittest.TestCase):
         """
 
         dataset = self.get_pair(static_files['bad_data_type'])
-        result = self.cf.check_fill_value_outside_valid_range(dataset)
-        assert result.value == (1, 2)
+        results = self.cf.check_fill_value_outside_valid_range(dataset)
+        assert sum((result.value for result in results)) == 1
+        assert len(results) == 2
 
     def test_check_conventions_are_cf_16(self):
         """
@@ -657,8 +658,11 @@ class TestCF(unittest.TestCase):
     def test_check_packed_data(self):
         dataset = self.get_pair(static_files['bad_data_type'])
         results = self.cf.check_packed_data(dataset)
+        self.assertEqual(len(results), 4)
         self.assertFalse(results[0].value)
         self.assertTrue(results[1].value)
+        self.assertTrue(results[2].value)
+        self.assertFalse(results[3].value)
 
 
     def test_check_compression(self):
