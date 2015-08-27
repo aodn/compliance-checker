@@ -2,11 +2,9 @@
 
 from compliance_checker.imos import IMOSCheck
 from compliance_checker.imos import util
-from compliance_checker.cf.util import is_vertical_coordinate, is_time_variable, units_convertible
 from compliance_checker.base import DSPair
 from wicken.netcdf_dogma import NetCDFDogma
 from netCDF4 import Dataset
-from tempfile import gettempdir
 from pkg_resources import resource_filename
 
 import unittest
