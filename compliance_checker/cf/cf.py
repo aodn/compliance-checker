@@ -1199,11 +1199,7 @@ class CFBaseCheck(BaseCheck):
             if not has_units:
                 result = Result(BaseCheck.HIGH, \
                                 False,          \
-                                ('time', k, 'has_units'),['%s does not have the correct units'%k])
-                ret_val.append(result)
-                result = Result(BaseCheck.HIGH, \
-                                False,          \
-                                ('time', k, 'correct_units'),['%s does not have the correct units'%k])
+                                ('time', k, 'has_units'),['%s does not have units'%k])
                 ret_val.append(result)
                 continue
             # Correct and identifiable units
@@ -1212,9 +1208,13 @@ class CFBaseCheck(BaseCheck):
                             ('time', k, 'has_units'))
             ret_val.append(result)
             correct_units = units_temporal(v.units)
+            reasoning = None
+            if not correct_units:
+                reasoning = ['%s doesn not have correct time units' % k]
             result = Result(BaseCheck.HIGH, \
                             correct_units,  \
-                            ('time', k, 'correct_units'))
+                            ('time', k, 'correct_units'),  \
+                            reasoning)
             ret_val.append(result)
 
         return ret_val
@@ -1273,16 +1273,26 @@ class CFBaseCheck(BaseCheck):
         for k,v in ds.dataset.variables.iteritems():
             if not is_time_variable(k,v):
                 continue
+            reasoning = None
             has_calendar = hasattr(v, 'calendar')
+            if not has_calendar:
+                reasoning = ['Variable %s should have a calendar attribute' % k]
             result = Result(BaseCheck.LOW,  \
                             has_calendar,   \
-                            ('time', k, 'has_calendar'))
+                            ('time', k, 'has_calendar'),  \
+                            reasoning)
             ret_val.append(result)
-            valid_calendar = has_calendar and v.calendar in valid_calendars
-            result = Result(BaseCheck.LOW,  \
-                            valid_calendar, \
-                            ('time', k, 'valid_calendar'))
-            ret_val.append(result)
+
+            if has_calendar:
+                reasoning = None
+                valid_calendar = v.calendar in valid_calendars
+                if not valid_calendar:
+                    reasoning = ["'%s' is not a valid calendar" % v.calendar]
+                    result = Result(BaseCheck.LOW,  \
+                                    valid_calendar, \
+                                    ('time', k, 'valid_calendar'),  \
+                                    reasoning)
+                ret_val.append(result)
 
         return ret_val
         

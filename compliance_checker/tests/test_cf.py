@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from compliance_checker.cf import CFBaseCheck, BaseCheck, dimless_vertical_coordinates
-from compliance_checker.cf.util import is_vertical_coordinate, is_time_variable, units_convertible
+from compliance_checker.cf.util import is_vertical_coordinate, is_time_variable, units_convertible, units_temporal
 from compliance_checker.base import DSPair
 from wicken.netcdf_dogma import NetCDFDogma
 from netCDF4 import Dataset
@@ -551,7 +551,6 @@ class TestCF(unittest.TestCase):
         results = self.cf.check_calendar(dataset)
         rd = {r.name[1:] : r.value for r in results }
         self.assertFalse(rd[('bad_time_1', 'has_calendar')])
-        self.assertFalse(rd[('bad_time_1', 'valid_calendar')])
         self.assertTrue(rd[('bad_time_2', 'has_calendar')])
         self.assertFalse(rd[('bad_time_2', 'valid_calendar')])
 
@@ -756,6 +755,10 @@ class TestCF(unittest.TestCase):
         self.assertTrue(units_convertible('hours', 'seconds'))
         self.assertFalse(units_convertible('hours', 'hours since 2000-01-01'))
 
+    def test_units_temporal(self):
+        self.assertTrue(units_temporal('hours since 2000-01-01'))
+        self.assertFalse(units_temporal('hours'))
+        self.assertFalse(units_temporal('days since the big bang'))
 
 
 def breakpoint(scope=None, global_scope=None):
