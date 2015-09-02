@@ -616,9 +616,9 @@ class TestIMOS(unittest.TestCase):
     def test_check_data_variables(self):
         self.imos.setup(self.good_dataset)
         ret_val = self.imos.check_data_variables(self.good_dataset)
-        self.assertEqual(len(ret_val), 7)
-        for i in range(6):
-            self.assertTrue(ret_val[i].value)
+        self.assertEqual(len(ret_val), 5)
+        for result in ret_val:
+            self.assertTrue(result.value)
 
         self.imos.setup(self.data_variable_dataset)
         ret_val = self.imos.check_data_variables(self.data_variable_dataset)
