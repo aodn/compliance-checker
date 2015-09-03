@@ -21,6 +21,7 @@ from compliance_checker.imos.util import find_ancillary_variables_by_variable
 from compliance_checker.imos.util import check_present
 from compliance_checker.imos.util import check_value
 from compliance_checker.imos.util import check_attribute_type
+from compliance_checker.imos.util import vertical_coordinate_type
 
 
 class IMOSCheck(BaseNCCheck):
@@ -1026,7 +1027,9 @@ class IMOSCheck(BaseNCCheck):
         """
         Check vertical variable attributes:
             standard_name  value is 'depth' or 'height'
-            axis   value is 'Z'
+            axis = 'Z' (for at least one vertical variable in the file --
+                        there are cases where CF does not allow multiple
+                        variables with the same axis value)
             positive value is 'down' or "up"
             valid_min exist
             valid_max exists
@@ -1034,106 +1037,98 @@ class IMOSCheck(BaseNCCheck):
             unit
         """
         ret_val = []
+        results_axis = []
+        n_vertical_var = 0
 
-        result_name = ('var', 'VERTICAL', 'check_present')
-        result = check_present(('VERTICAL',),
-                                dataset,
-                                IMOSCheck.CHECK_VARIABLE,
-                                result_name,
-                                BaseCheck.HIGH)
-        if result.value:
+        for name, var in dataset.dataset.variables.iteritems():
+            var_type = vertical_coordinate_type(var)
+            if var_type is None:
+                # not a vertical variable
+                continue
 
-            result_name = ('var', 'VERTICAL', 'reference_datum', 'check_attributes')
-            result = check_attribute_type(('VERTICAL','reference_datum',),
+            n_vertical_var += 1
+            result_name_std = ('var', name, 'standard_name', 'vertical')
+            result_name_pos = ('var', name, 'positive', 'vertical')
+            if var_type == 'unknown':
+                # we only get this if var has axis='Z' but no valid
+                # standard_name or positive attribute
+                result = Result(BaseCheck.HIGH, False, result_name_std, \
+                                ["Vertical coordinate variable (axis='Z') should have attribute" \
+                                 " standard_name = 'depth' or 'height'"])
+                ret_val.append(result)
+                result = Result(BaseCheck.HIGH, False, result_name_pos, \
+                                ["Vertical coordinate variable (axis='Z') should have attribute" \
+                                 " positive = 'up' or 'down'"])
+                ret_val.append(result)
+
+            else:
+                if var_type == 'height':
+                    expected_positive = 'up'
+                else:
+                    expected_positive = 'down'
+
+                reasoning = []
+                valid = getattr(var, 'standard_name', '') == var_type
+                if not valid:
+                    reasoning = ["Variable %s appears to be a vertical coordinate, should have attribute" \
+                                 " standard_name = '%s'" % (name, var_type)]
+                result = Result(BaseCheck.HIGH, valid, result_name_std, reasoning)
+                ret_val.append(result)
+
+                reasoning = []
+                valid = getattr(var, 'positive', '') == expected_positive
+                if not valid:
+                    reasoning = ["Variable %s appears to be a vertical coordinate, should have attribute" \
+                                 " positive = '%s'" % (name, expected_positive)]
+                result = Result(BaseCheck.HIGH, valid, result_name_pos, reasoning)
+                ret_val.append(result)
+
+            result_name = ('var', name, 'reference_datum', 'type')
+            result = check_attribute_type((name, 'reference_datum'),
                                        basestring,
                                        dataset,
                                        IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
                                        result_name,
                                        BaseCheck.HIGH)
-
             ret_val.append(result)
 
-            result1 = check_value(('VERTICAL','standard_name',),
-                              'depth',
-                              IMOSCheck.OPERATOR_EQUAL, dataset,
-                              IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                              result_name,
-                              BaseCheck.HIGH)
+            result_name = ('var', name, 'valid_min', 'present')
+            result = check_present((name, 'valid_min'),
+                                    dataset,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+            ret_val.append(result)
 
-            result2 = check_value(('VERTICAL','standard_name',),
-                              'height',
-                              IMOSCheck.OPERATOR_EQUAL, dataset,
-                              IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                              result_name,
-                              BaseCheck.HIGH)
+            result_name = ('var', name, 'valid_max', 'present')
+            result = check_present((name, 'valid_max'),
+                                    dataset,
+                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
+                                    result_name,
+                                    BaseCheck.HIGH)
+            ret_val.append(result)
 
-            result3 = check_value(('VERTICAL','positive',),
-                              'down',
-                              IMOSCheck.OPERATOR_EQUAL, dataset,
-                              IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                              result_name,
-                              BaseCheck.HIGH)
-
-            result4 = check_value(('VERTICAL','positive',),
-                              'up',
-                              IMOSCheck.OPERATOR_EQUAL, dataset,
-                              IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                              result_name,
-                              BaseCheck.HIGH)
-
-
-            if (result1.value and result3.value) or (result2.value and result4.value):
-                result_name = ('var', 'VERTICAL', 'positive', 'check_value')
-                result = Result(BaseCheck.HIGH, True, result_name, None)
-                ret_val.append(result)
-                result_name = ('var', 'VERTICAL', 'standard_name', 'check_value')
+            result_name = ('var', name, 'axis', 'vertical')
+            axis = getattr(var, 'axis', '')
+            if axis and axis == 'Z':
                 result = Result(BaseCheck.HIGH, True, result_name, None)
                 ret_val.append(result)
             else:
-                result_name = ('var', 'VERTICAL', 'positive', 'check_value')
-                reasoning = ["doesn't have value pair (depth, down) or (height, up)"]
+                reasoning = ["Variable %s appears to be a vertical coordinate, should have attribute" \
+                             " axis = 'Z'" % name]
                 result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-                ret_val.append(result)
-                result_name = ('var', 'VERTICAL', 'standard_name', 'check_value')
-                reasoning = ["doesn't have value pair (depth, down) or (height, up)"]
-                result = Result(BaseCheck.HIGH, False, result_name, reasoning)
-                ret_val.append(result)
+                if axis:
+                    # axis attribute exists, incorrect value, so definitely report
+                    ret_val.append(result)
+                else:
+                    # no axis attribute, which might be ok, review later
+                    results_axis.append(result)
 
-            result_name = ('var', 'VERTICAL', 'valid_min', 'check_present')
-
-            result = check_present(('VERTICAL', 'valid_min'),
-                                    dataset,
-                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                    result_name,
-                                    BaseCheck.HIGH)
-
-            ret_val.append(result)
-
-            result_name = ('var', 'VERTICAL', 'valid_max', 'check_present')
-
-            result = check_present(('VERTICAL', 'valid_max'),
-                                    dataset,
-                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                    result_name,
-                                    BaseCheck.HIGH)
-
-            ret_val.append(result)
-
-            result_name = ('var', 'VERTICAL', 'axis', 'check_attributes')
-
-            result = check_value(('VERTICAL','axis',),
-                                    'Z',
-                                    IMOSCheck.OPERATOR_EQUAL,
-                                    dataset,
-                                    IMOSCheck.CHECK_VARIABLE_ATTRIBUTE,
-                                    result_name,
-                                    BaseCheck.HIGH)
-
-            ret_val.append(result)
-
-            result_name = ('var', 'VERTICAL', 'units', 'check_attributes')
-            reasoning = ["units is not a valid CF distance unit"]
-            result = check_value(('VERTICAL','units',),
+            result_name = ('var', name, 'units', 'vertical')
+            reasoning = [" is not a valid CF distance unit"]
+            reasoning = ["Variable %s appears to be a vertical coordinate, should have" \
+                         " units of distance" % name]
+            result = check_value((name,'units',),
                                     'meter',
                                     IMOSCheck.OPERATOR_CONVERTIBLE,
                                     dataset,
@@ -1141,21 +1136,22 @@ class IMOSCheck(BaseNCCheck):
                                     result_name,
                                     BaseCheck.HIGH,
                                     reasoning)
-
             ret_val.append(result)
 
-            result_name = ('var', 'VERTICAL','check_variable_type')
-            reasoning = ["The Type of variable VERTICAL is not Double or Float"]
-
-            result = check_attribute_type(('VERTICAL',),
+            result_name = ('var', name, 'variable_type')
+            reasoning = ["Variable %s should have type Double or Float" % name]
+            result = check_attribute_type((name,),
                                         [np.float64, np.float, np.float32, np.float16, np.float128],
                                         dataset,
                                         IMOSCheck.CHECK_VARIABLE,
                                         result_name,
-                                        BaseCheck.HIGH,
+                                        BaseCheck.MEDIUM,
                                         reasoning)
-
             ret_val.append(result)
+
+        # if none of the vertical variables have axis='Z', report it
+        if len(results_axis) == n_vertical_var:
+            ret_val.extend(results_axis)
 
         return ret_val
 

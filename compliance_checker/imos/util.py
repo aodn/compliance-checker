@@ -66,6 +66,46 @@ def is_numeric(variable_type):
 
     return False
 
+def vertical_coordinate_type(variable):
+    """Return None if the given variable does not appear to be a vertical
+    coordinate. Otherwise return the likely type of the coordinate
+    ('height', 'depth' or 'unknown'). A type is returned if the
+    variable meets any of the conditions:
+      * variable name includes 'depth' or 'height' (case-insensitive),
+        but not 'quality_control'
+      * standard_name is 'depth' or 'height'
+      * positive attribute is 'up' or 'down'
+      * axis is 'Z' (type is then 'unknown')
+
+    """
+
+    name = getattr(variable, 'name', '')
+
+    # skip QC variables
+    if name.endswith('_quality_control'):
+        return None
+
+    if 'depth' in name.lower():
+        return 'depth'
+    if 'height' in  name.lower():
+        return 'height'
+
+    standard_name = getattr(variable, 'standard_name', '')
+    if standard_name in ('depth', 'height'):
+        return standard_name
+
+    positive = getattr(variable, 'positive', '')
+    if positive == 'down':
+        return 'depth'
+    if positive == 'up':
+        return 'height'
+
+    if getattr(variable, 'axis', '') == 'Z':
+        return 'unknown'
+
+    return None
+
+
 def find_variables_from_attribute(dataset, variable, attribute_name):
     ''' Get variables based on a variable attribute such as coordinates.
     '''
