@@ -321,60 +321,68 @@ class IMOSCheck(BaseNCCheck):
         Check the global geospatial_vertical_min and
         geospatial_vertical_max attributes match range in data and numeric type
         """
+
+        # identify vertical vars
+        vert_vars = [v for v in dataset.dataset.variables.itervalues() \
+                             if vertical_coordinate_type(v) is not None]
+
+        vert_min = getattr(dataset.dataset, 'geospatial_vertical_min', None)
+        vert_max = getattr(dataset.dataset, 'geospatial_vertical_max', None)
+
+        # Do we have any vertical variables to compare with?
+        if not vert_vars:
+            if not (vert_min and vert_max):
+                # no vertical information at all, nothing to report
+                return []
+
+            reasoning = ['Could not find vertical variable to check values of ' \
+                         'geospatial_vertical_min/max']
+            result = Result(BaseCheck.MEDIUM,
+                            False,
+                            ('globalattr','geospatial_vertical_extent','variable_present'),
+                            reasoning)
+            return [result]
+
+        # Check attribute presence and types
         ret_val = []
+        bad_attr = False
+        for attr in ['geospatial_vertical_min', 'geospatial_vertical_max']:
+            result_name = ('globalattr', attr, 'type')
+            result = check_attribute_type((attr,),
+                                          IMOSCheck.float_type,
+                                          dataset,
+                                          IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
+                                          result_name,
+                                          BaseCheck.HIGH,
+                                          ["Attribute %s should have numeric type" % attr])
+            ret_val.append(result)
+            if not result.value:
+                bad_attr = True
 
-        result_name = ('globalattr', 'geospatial_vertical_min', 'check_attribute_type')
-        result = check_present(('VERTICAL',), dataset, IMOSCheck.CHECK_VARIABLE,
-                                result_name,
-                                BaseCheck.HIGH)
+        # attributes missing or have non-numeric types, checks below
+        # will just cause errors, so skip them
+        if bad_attr:
+            return ret_val
 
-        if result.value:
-            result_name = ('globalattr', 'geospatial_vertical_min', 'check_attribute_type')
-            result = check_attribute_type(('geospatial_vertical_min',),
-                                            IMOSCheck.float_type,
-                                            dataset,
-                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                            result_name,
-                                            BaseCheck.HIGH,
-                                            ["Attribute type is not numeric"])
+        obs_mins = {var.name:np.nanmin(var) for var in vert_vars if not np.isnan(var).all()}
+        obs_maxs = {var.name:np.nanmax(var) for var in vert_vars if not np.isnan(var).all()}
 
-            if result:
-                ret_val.append(result)
+        min_pass = any((np.isclose(vert_min, min_val) for min_val in obs_mins.itervalues()))
+        max_pass = any((np.isclose(vert_max, max_val) for max_val in obs_maxs.itervalues()))
 
-            if result.value:
-                geospatial_vertical_min = getattr(dataset.dataset, "geospatial_vertical_min", None)
-                result_name = ('globalattr', 'geospatial_vertical_min','check_minimum_value')
-                result = check_value(('VERTICAL',),
-                                       geospatial_vertical_min,
-                                       IMOSCheck.OPERATOR_MIN,
-                                       dataset,
-                                       IMOSCheck.CHECK_VARIABLE,
-                                       result_name,
-                                       BaseCheck.HIGH)
-                ret_val.append(result)
+        reasoning = []
+        if not min_pass:
+            reasoning = ["geospatial_vertical_min value (%s) did not match minimum value " \
+                         "of any vertical variable %s" % (vert_min, obs_mins)]
+        result_name = ('globalattr','geospatial_vertical_min','match_data')
+        ret_val.append(Result(BaseCheck.HIGH, min_pass, result_name, reasoning))
 
-            result_name = ('globalattr', 'geospatial_vertical_max', 'check_attribute_type')
-            result2 = check_attribute_type(('geospatial_vertical_max',),
-                                            IMOSCheck.float_type,
-                                            dataset,
-                                            IMOSCheck.CHECK_GLOBAL_ATTRIBUTE,
-                                            result_name,
-                                            BaseCheck.HIGH,
-                                            ["Attribute type is not numeric"])
-            if result2:
-                ret_val.append(result2)
-
-            if result2.value:
-                geospatial_vertical_max = getattr(dataset.dataset, "geospatial_vertical_max", None)
-                result_name = ('globalattr', 'geospatial_vertical_max','check_maximum_value')
-                result = check_value(('VERTICAL',),
-                                       geospatial_vertical_max,
-                                       IMOSCheck.OPERATOR_MAX,
-                                       dataset,
-                                       IMOSCheck.CHECK_VARIABLE,
-                                       result_name,
-                                       BaseCheck.HIGH)
-                ret_val.append(result)
+        reasoning = []
+        if not max_pass:
+            reasoning = ["geospatial_vertical_max value (%s) did not match maximum value " \
+                         "of any vertical variable %s" % (vert_max, obs_maxs)]
+        result_name = ('globalattr','geospatial_vertical_max','match_data')
+        ret_val.append(Result(BaseCheck.HIGH, max_pass, result_name, reasoning))
 
         return ret_val
 

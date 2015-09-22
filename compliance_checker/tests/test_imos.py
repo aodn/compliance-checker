@@ -417,20 +417,24 @@ class TestIMOS(unittest.TestCase):
 
     def test_check_geospatial_vertical_min_max(self):
         ret_val = self.imos.check_geospatial_vertical_min_max(self.good_dataset)
-
+        self.assertEqual(len(ret_val), 4)
         for result in ret_val:
             self.assertTrue(result.value)
 
         ret_val = self.imos.check_geospatial_vertical_min_max(self.bad_dataset)
+        self.assertEqual(len(ret_val), 1)
+        self.assertFalse(ret_val[0].value)
+        self.assertIn('variable_present', ret_val[0].name)
 
+        ret_val = self.imos.check_geospatial_vertical_min_max(self.bad_coords_dataset)
+        self.assertEqual(len(ret_val), 4)
         for result in ret_val:
-            if 'check_attribute_type' in result.name:
+            if result.name[2] == 'type':
                 self.assertTrue(result.value)
             else:
                 self.assertFalse(result.value)
 
         ret_val = self.imos.check_geospatial_vertical_min_max(self.missing_dataset)
-
         self.assertTrue(len(ret_val) == 0)
 
     def test_check_time_coverage(self):
