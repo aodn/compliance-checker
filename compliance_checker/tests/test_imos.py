@@ -2,11 +2,9 @@
 
 from compliance_checker.imos import IMOSCheck
 from compliance_checker.imos import util
-from compliance_checker.cf.util import is_vertical_coordinate, is_time_variable, units_convertible
 from compliance_checker.base import DSPair
 from wicken.netcdf_dogma import NetCDFDogma
 from netCDF4 import Dataset
-from tempfile import gettempdir
 from pkg_resources import resource_filename
 
 import unittest
@@ -21,7 +19,19 @@ static_files = {
         'missing_data' : resource_filename('compliance_checker', 'tests/data/imos_missing_data.nc'),
         'test_variable' : resource_filename('compliance_checker', 'tests/data/imos_variable_test.nc'),
         'data_var' : resource_filename('compliance_checker', 'tests/data/imos_data_var.nc'),
+        'bad_coords' : resource_filename('compliance_checker', 'tests/data/imos_bad_coords.nc'),
         }
+
+
+class MockVariable(object):
+    '''
+    For mocking a dataset variable
+    '''
+    def __init__(self, name='', **argd):
+        self.name = name
+        for k, v in argd.iteritems():
+            self.__dict__[k] = v
+
 
 class TestIMOS(unittest.TestCase):
     # @see
@@ -50,6 +60,7 @@ class TestIMOS(unittest.TestCase):
         self.missing_dataset = self.get_pair(static_files['missing_data'])
         self.test_variable_dataset = self.get_pair(static_files['test_variable'])
         self.data_variable_dataset = self.get_pair(static_files['data_var'])
+        self.bad_coords_dataset = self.get_pair(static_files['bad_coords'])
 
     def get_pair(self, nc_dataset):
         '''
@@ -271,6 +282,34 @@ class TestIMOS(unittest.TestCase):
                                                 reasoning=['TIME:valid_min bad type'])
 
 
+    def test_vertical_coordinate_type(self):
+        var = MockVariable('TEMP')
+        self.assertIsNone(util.vertical_coordinate_type(var))
+        var = MockVariable('DEPTH_quality_control')
+        self.assertIsNone(util.vertical_coordinate_type(var))
+
+        var = MockVariable('NOMINAL_DEPTH')
+        self.assertEqual(util.vertical_coordinate_type(var), 'depth')
+        var = MockVariable('HEIGHT_ABOVE_SENSOR')
+        self.assertEqual(util.vertical_coordinate_type(var), 'height')
+
+        var = MockVariable('NONAME', standard_name='time')
+        self.assertIsNone(util.vertical_coordinate_type(var))
+        var = MockVariable('NONAME', standard_name='height')
+        self.assertEqual(util.vertical_coordinate_type(var), 'height')
+
+        var = MockVariable('NONAME', positive='negative')
+        self.assertIsNone(util.vertical_coordinate_type(var))
+        var = MockVariable('NONAME', positive='down')
+        self.assertEqual(util.vertical_coordinate_type(var), 'depth')
+
+        var = MockVariable('NONAME', axis='X')
+        self.assertIsNone(util.vertical_coordinate_type(var))
+        var = MockVariable('NONAME', axis='Z')
+        self.assertEqual(util.vertical_coordinate_type(var), 'unknown')
+
+
+
     ### Test compliance checks
 
     def test_check_global_attributes(self):
@@ -378,20 +417,24 @@ class TestIMOS(unittest.TestCase):
 
     def test_check_geospatial_vertical_min_max(self):
         ret_val = self.imos.check_geospatial_vertical_min_max(self.good_dataset)
-
+        self.assertEqual(len(ret_val), 4)
         for result in ret_val:
             self.assertTrue(result.value)
 
         ret_val = self.imos.check_geospatial_vertical_min_max(self.bad_dataset)
+        self.assertEqual(len(ret_val), 1)
+        self.assertFalse(ret_val[0].value)
+        self.assertIn('variable_present', ret_val[0].name)
 
+        ret_val = self.imos.check_geospatial_vertical_min_max(self.bad_coords_dataset)
+        self.assertEqual(len(ret_val), 4)
         for result in ret_val:
-            if 'check_attribute_type' in result.name:
+            if result.name[2] == 'type':
                 self.assertTrue(result.value)
             else:
                 self.assertFalse(result.value)
 
         ret_val = self.imos.check_geospatial_vertical_min_max(self.missing_dataset)
-
         self.assertTrue(len(ret_val) == 0)
 
     def test_check_time_coverage(self):
@@ -585,18 +628,26 @@ class TestIMOS(unittest.TestCase):
 
     def test_check_vertical_variable(self):
         ret_val = self.imos.check_vertical_variable(self.good_dataset)
-
+        self.assertTrue(len(ret_val) > 0)
         for result in ret_val:
+            self.assertIn(result.name[1], ('DEPTH', 'NOMINAL_DEPTH'))
             self.assertTrue(result.value)
 
-        ret_val = self.imos.check_vertical_variable(self.bad_dataset)
-
+        ret_val = self.imos.check_vertical_variable(self.bad_coords_dataset)
+        self.assertEqual(len(ret_val), 23)
         for result in ret_val:
-            self.assertFalse(result.value)
+            var, attr = result.name[1:3]
+            self.assertIn(var, ('DEPTH', 'VERTICAL', 'HHH'))
+            if (var, attr) in (('VERTICAL', 'positive'),
+                               ('VERTICAL', 'variable_type'),
+                               ('HHH', 'axis'),
+                               ('HHH', 'variable_type')):
+                self.assertTrue(result.value)
+            else:
+                self.assertFalse(result.value)
 
         ret_val = self.imos.check_vertical_variable(self.missing_dataset)
-
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_variable_attribute_type(self):
         ret_val = self.imos.check_variable_attribute_type(self.good_dataset)
@@ -618,9 +669,9 @@ class TestIMOS(unittest.TestCase):
     def test_check_data_variables(self):
         self.imos.setup(self.good_dataset)
         ret_val = self.imos.check_data_variables(self.good_dataset)
-        self.assertEqual(len(ret_val), 7)
-        for i in range(6):
-            self.assertTrue(ret_val[i].value)
+        self.assertEqual(len(ret_val), 5)
+        for result in ret_val:
+            self.assertTrue(result.value)
 
         self.imos.setup(self.data_variable_dataset)
         ret_val = self.imos.check_data_variables(self.data_variable_dataset)
@@ -691,7 +742,7 @@ class TestIMOS(unittest.TestCase):
         for result in ret_val:
             self.assertFalse(result.value)
 
-        ret_val = self.imos.check_vertical_variable(self.missing_dataset)
+        ret_val = self.imos.check_geospatial_lat_units(self.missing_dataset)
 
         self.assertTrue(len(ret_val) == 0)
 
