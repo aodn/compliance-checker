@@ -172,6 +172,10 @@ class IMOSFileNameCheck(BaseNCCheck):
         time_coverage_start = getattr(ds.dataset, 'time_coverage_start', None)
         passed = False
         if time_coverage_start is not None:
+            # time_coverage_start format is yyyy-mm-ddTHH:MM:SSZ while
+            # field4 format is yyyymmddTHHMMSSZ
+            time_coverage_start = time_coverage_start.replace("-", "")
+            time_coverage_start = time_coverage_start.replace(":", "")
             if self._file_names_length >= 4:
                 field4 = self._file_names[3]
                 if field4 != time_coverage_start:
