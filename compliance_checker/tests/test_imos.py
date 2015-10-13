@@ -395,7 +395,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_geospatial_lat_min_max(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_geospatial_lon_min_max(self):
         ret_val = self.imos.check_geospatial_lat_min_max(self.good_dataset)
@@ -413,7 +413,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_geospatial_lat_min_max(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_geospatial_vertical_min_max(self):
         ret_val = self.imos.check_geospatial_vertical_min_max(self.good_dataset)
@@ -435,7 +435,7 @@ class TestIMOS(unittest.TestCase):
                 self.assertFalse(result.value)
 
         ret_val = self.imos.check_geospatial_vertical_min_max(self.missing_dataset)
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_time_coverage(self):
         ret_val = self.imos.check_time_coverage(self.good_dataset)
@@ -450,7 +450,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_time_coverage(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_title(self):
         ret_val = self.imos.check_title(self.good_dataset)
@@ -478,7 +478,6 @@ class TestIMOS(unittest.TestCase):
 
         for result in ret_val:
             self.assertFalse(result.value)
-
 
     def test_check_abstract(self):
 
@@ -554,7 +553,6 @@ class TestIMOS(unittest.TestCase):
         self.assertTrue(ret_val[0].value)
         self.assertFalse(ret_val[1].value)
 
-
     def test_check_variables_long_name(self):
         ret_val = self.imos.check_variables_long_name(self.good_dataset)
 
@@ -574,7 +572,7 @@ class TestIMOS(unittest.TestCase):
     def test_check_coordinate_variables(self):
         self.imos.setup(self.good_dataset)
 
-        self.assertTrue(len(self.imos._coordinate_variables) == 1)
+        self.assertEqual(len(self.imos._coordinate_variables), 1)
 
         ret_val = self.imos.check_coordinate_variables(self.good_dataset)
 
@@ -594,7 +592,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_time_variable(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_longitude_variable(self):
         ret_val = self.imos.check_longitude_variable(self.good_dataset)
@@ -609,7 +607,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_longitude_variable(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_latitude_variable(self):
         ret_val = self.imos.check_latitude_variable(self.good_dataset)
@@ -624,11 +622,11 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_latitude_variable(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_vertical_variable(self):
         ret_val = self.imos.check_vertical_variable(self.good_dataset)
-        self.assertTrue(len(ret_val) > 0)
+        self.assertGreater(len(ret_val), 0)
         for result in ret_val:
             self.assertIn(result.name[1], ('DEPTH', 'NOMINAL_DEPTH'))
             self.assertTrue(result.value)
@@ -683,9 +681,8 @@ class TestIMOS(unittest.TestCase):
     def test_check_quality_control_variable_matches_variable(self):
         self.imos.setup(self.test_variable_dataset)
         ret_val = self.imos.check_quality_control_variable_matches_variable(self.test_variable_dataset)
-
-        self.assertTrue(ret_val != None)
-        self.assertTrue(len(ret_val) == 9)
+        self.assertIsNotNone(ret_val)
+        self.assertEqual(len(ret_val), 9)
 
         self.assertTrue(ret_val[0].value)
         self.assertTrue(ret_val[1].value)
@@ -697,8 +694,8 @@ class TestIMOS(unittest.TestCase):
         self.imos.setup(self.test_variable_dataset)
         ret_val = self.imos.check_quality_control_variable_dimensions(self.test_variable_dataset)
 
-        self.assertTrue(ret_val != None)
-        self.assertTrue(len(ret_val) == 2)
+        self.assertIsNotNone(ret_val)
+        self.assertEqual(len(ret_val), 2)
 
         self.assertTrue(ret_val[0].value)
         self.assertFalse(ret_val[1].value)
@@ -707,7 +704,7 @@ class TestIMOS(unittest.TestCase):
         self.imos.setup(self.test_variable_dataset)
         ret_val = self.imos.check_quality_control_variable_listed(self.test_variable_dataset)
 
-        self.assertTrue(ret_val != None)
+        self.assertIsNotNone(ret_val)
         self.assertEqual(len(ret_val), 5)
 
         self.assertTrue(ret_val[0].value)
@@ -730,8 +727,8 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_quality_control_variable_standard_name(self.test_variable_dataset)
 
-        self.assertTrue(ret_val != None)
-        self.assertTrue(len(ret_val) > 0)
+        self.assertIsNotNone(ret_val)
+        self.assertGreater(len(ret_val), 0)
 
         self.assertTrue(ret_val[0].value)
         self.assertFalse(ret_val[1].value)
@@ -749,7 +746,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_geospatial_lat_units(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_geospatial_lon_units(self):
         ret_val = self.imos.check_geospatial_lon_units(self.good_dataset)
@@ -764,7 +761,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_geospatial_lon_units(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_geospatial_vertical_positive(self):
         ret_val = self.imos.check_geospatial_vertical_positive(self.good_dataset)
@@ -779,7 +776,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_geospatial_vertical_positive(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_author_email(self):
         ret_val = self.imos.check_author_email(self.good_dataset)
@@ -794,7 +791,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_author_email(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_principal_investigator_email(self):
         ret_val = self.imos.check_principal_investigator_email(self.good_dataset)
@@ -809,7 +806,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_principal_investigator_email(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_quality_control_set(self):
         ret_val = self.imos.check_quality_control_set(self.good_dataset)
@@ -824,7 +821,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_quality_control_set(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_local_time_zone(self):
         ret_val = self.imos.check_local_time_zone(self.good_dataset)
@@ -839,7 +836,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_local_time_zone(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
 
     def test_check_geospatial_vertical_units(self):
         ret_val = self.imos.check_geospatial_vertical_units(self.good_dataset)
@@ -854,7 +851,7 @@ class TestIMOS(unittest.TestCase):
 
         ret_val = self.imos.check_geospatial_vertical_units(self.missing_dataset)
 
-        self.assertTrue(len(ret_val) == 0)
+        self.assertEqual(len(ret_val), 0)
         
     def test_check_conventions_attribute(self):
         ret_val = self.imos.check_conventions(self.good_dataset)
