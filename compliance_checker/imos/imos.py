@@ -1311,6 +1311,40 @@ class IMOSCheck(BaseNCCheck):
 
         return ret_val
 
+    def check_quality_control_variable_matches_variable(self, dataset):
+        """
+        Check that the name of a quality control variable which is like <DATA>_quality_control
+        and matches the name of a corresponding data variable <DATA>.
+        """
+        ret_val = []
+        for qc_variable in self._quality_control_variables:
+            result_name = ('qc_var', qc_variable.name, 'ends_in_quality_control')
+            reasoning = ["the qc variable '%s' does not end in '_quality_control'" % qc_variable.name]
+            qc_variable_root_name = re.findall('^(.*)_quality_control$', qc_variable.name)   # returns a list with the root names, if matched
+            if qc_variable_root_name:
+                reasoning = []
+                qc_variable_root_name = qc_variable_root_name[0]
+
+            result = Result(BaseCheck.HIGH, reasoning==[], result_name, reasoning)
+
+            ret_val.append(result)
+
+            if not qc_variable_root_name:
+                continue
+
+            result_name = ('qc_var', qc_variable.name, 'match_with_variable')
+            reasoning = ["there is no data variable name '%s' for '%s'" % (qc_variable_root_name, qc_variable.name)]
+            match = False
+            if qc_variable_root_name in dataset.dataset.variables.keys():
+                reasoning = []
+                match = True
+
+            result = Result(BaseCheck.HIGH, match, result_name, reasoning)
+            
+            ret_val.append(result)
+
+        return ret_val
+
     def check_quality_control_variable_dimensions(self, dataset):
         """
         Check quality variable has same dimensions as the related data variable.
