@@ -250,8 +250,8 @@ def check_present(name, data, check_type, result_name, check_priority, reasoning
 def check_value(name, value, operator, ds, check_type, result_name, check_priority, reasoning=None, skip_check_present=False):
     """
     Help method to compare attribute to value or a variable
-    to a value. It also returns a Result object based on the whether
-    the check is successful.
+    to a value. It also returns a Result object based on whether
+    the check is successful or not.
 
     params:
         name (tuple): variable name and attribute name.
@@ -301,7 +301,7 @@ def check_value(name, value, operator, ds, check_type, result_name, check_priori
         if operator == OPERATOR_MIN:
             min_value = amin(variable.__array__())
 
-            if min_value != float(value):
+            if not np.isclose(min_value, float(value)):
                 passed = False
                 reasoning_out = reasoning or \
                                 ["Minimum value of %s (%f) does not match attributes (%f)" % \
@@ -309,7 +309,7 @@ def check_value(name, value, operator, ds, check_type, result_name, check_priori
 
         if operator == OPERATOR_MAX:
             max_value = amax(variable.__array__())
-            if max_value != float(value):
+            if not np.isclose(max_value, float(value)):
                 passed = False
                 reasoning_out = reasoning or \
                                 ["Maximum value of %s (%f) does not match attributes (%f)" % \
