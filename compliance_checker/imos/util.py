@@ -194,8 +194,7 @@ def find_quality_control_variables(dataset):
                 quality_control_variables.append(var)
                 continue
 
-        if getattr(var, 'flag_values', None) is not None or getattr(var,\
-                    'flag_meanings', None) is not None:
+        if hasattr(var, 'quality_control_conventions'):
             quality_control_variables.append(var)
             continue
 
