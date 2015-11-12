@@ -364,8 +364,8 @@ class IMOSCheck(BaseNCCheck):
         if bad_attr:
             return ret_val
 
-        obs_mins = {var.name:np.nanmin(var) for var in vert_vars if not np.isnan(var).all()}
-        obs_maxs = {var.name:np.nanmax(var) for var in vert_vars if not np.isnan(var).all()}
+        obs_mins = {var.name:np.nanmin(var.__array__()) for var in vert_vars if not np.isnan(var.__array__()).all()}
+        obs_maxs = {var.name:np.nanmax(var.__array__()) for var in vert_vars if not np.isnan(var.__array__()).all()}
 
         min_pass = any((np.isclose(vert_min, min_val) for min_val in obs_mins.itervalues()))
         max_pass = any((np.isclose(vert_max, max_val) for max_val in obs_maxs.itervalues()))
