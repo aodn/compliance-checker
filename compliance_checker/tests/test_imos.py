@@ -682,7 +682,7 @@ class TestIMOS(unittest.TestCase):
         self.imos.setup(self.test_variable_dataset)
         ret_val = self.imos.check_quality_control_variable_matches_variable(self.test_variable_dataset)
         self.assertIsNotNone(ret_val)
-        self.assertEqual(len(ret_val), 9)
+        self.assertEqual(len(ret_val), 10)
 
         self.assertTrue(ret_val[0].value)
         self.assertTrue(ret_val[1].value)
@@ -705,7 +705,7 @@ class TestIMOS(unittest.TestCase):
         ret_val = self.imos.check_quality_control_variable_listed(self.test_variable_dataset)
 
         self.assertIsNotNone(ret_val)
-        self.assertEqual(len(ret_val), 5)
+        self.assertEqual(len(ret_val), 6)
 
         self.assertTrue(ret_val[0].value)
         self.assertTrue(ret_val[1].value)
@@ -713,11 +713,12 @@ class TestIMOS(unittest.TestCase):
     def test_check_quality_control_conventions_for_quality_control_variable(self):
         self.imos.setup(self.test_variable_dataset)
         ret_val = self.imos.check_quality_control_conventions_for_quality_control_variable(self.test_variable_dataset)
-        self.assertEqual(len(ret_val), 10)
+        self.assertEqual(len(ret_val), 12)
         for result in ret_val:
             if result.name[1:] == ('LONGITUDE_quality_control', 'quality_control_conventions') or \
                result.name[1] == 'bad1_quality_control' or \
-               result.name[1] == 'bad2_qc':
+               result.name[1] == 'bad2_qc' or \
+               result.name[1] == 'bad3_qc':
                 self.assertFalse(result.value)
             else:
                 self.assertTrue(result.value)
