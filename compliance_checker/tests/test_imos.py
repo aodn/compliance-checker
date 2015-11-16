@@ -713,9 +713,10 @@ class TestIMOS(unittest.TestCase):
     def test_check_quality_control_conventions_for_quality_control_variable(self):
         self.imos.setup(self.test_variable_dataset)
         ret_val = self.imos.check_quality_control_conventions_for_quality_control_variable(self.test_variable_dataset)
-        self.assertEqual(len(ret_val), 12)
+        self.assertEqual(len(ret_val), 6)
         for result in ret_val:
             if result.name[1:] == ('LONGITUDE_quality_control', 'quality_control_conventions') or \
+               result.name[1] == 'LATITUDE_quality_control' or \
                result.name[1] == 'bad1_quality_control' or \
                result.name[1] == 'bad2_qc' or \
                result.name[1] == 'bad3_qc':

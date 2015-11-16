@@ -1255,35 +1255,16 @@ class IMOSCheck(BaseNCCheck):
 
     def check_quality_control_conventions_for_quality_control_variable(self, dataset):
         """
-        Check that the attributes quality_control_set and quality_control_conventions
-        are valid and consistent.
+        Check that the attribute quality_control_conventions
+        is valid and consistent.
         """
-        test_value_dict = {'1': "IMOS standard set using the IODE flags",\
-                           '2': "ARGO quality control procedure",\
-                           '3': "BOM (SST and Air-Sea flux) quality control procedure",\
-                           '4': "WOCE quality control procedure"}
+        test_value_conventions = ("IMOS standard set using the IODE flags",\
+                                  "ARGO quality control procedure",\
+                                  "BOM (SST and Air-Sea flux) quality control procedure",\
+                                  "WOCE quality control procedure")
         ret_val = []
 
         for qc_variable in self._quality_control_variables:
-            quality_control_set = getattr(qc_variable, 'quality_control_set', None)
-            result_name = ('qc_var', qc_variable.name, 'quality_control_set')
-
-            if quality_control_set:
-                reasoning = []
-                key = str(int(quality_control_set))
-                set_valid = key in test_value_dict
-                if not set_valid:
-                    reasoning = ["Attribute quality_control_set has invalid value " \
-                                 "(should be 1, 2, 3 or 4)"]
-                result = Result(BaseCheck.MEDIUM, set_valid, result_name, reasoning)
-                ret_val.append(result)
-
-            else:
-                reasoning = ["Variable %s should have a quality_control_set attribute" \
-                             % qc_variable.name]
-                result = Result(BaseCheck.MEDIUM, False, result_name, reasoning)
-                ret_val.append(result)
-
             quality_control_conventions = getattr(qc_variable, 'quality_control_conventions', None)
             result_name = ('qc_var', qc_variable.name, 'quality_control_conventions')
 
@@ -1295,13 +1276,8 @@ class IMOSCheck(BaseNCCheck):
                 # nothing further to check for this variable
                 continue
 
-            if set_valid:
-                conv_valid = quality_control_conventions.startswith(test_value_dict[key])
-                reasoning = ["quality_control_set=%s implies value of quality_control_conventions " \
-                             "attribute should be '%s'" % (key, test_value_dict[key]) ]
-            else:
-                conv_valid = quality_control_conventions in test_value_dict.values()
-                reasoning = ["'%s' is not a valid value of the quality_control_conventions " \
+            conv_valid = quality_control_conventions in test_value_conventions
+            reasoning = ["'%s' is not a valid value of the quality_control_conventions " \
                              "attribute" % quality_control_conventions]
             if conv_valid:
                 reasoning = []
