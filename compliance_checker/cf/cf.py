@@ -800,7 +800,7 @@ class CFBaseCheck(BaseCheck):
                 if len(zeros):
                     msgs = ['flag_masks attribute values contains a zero']
 
-                ret_val.append(Result(BaseCheck.HIGH, len(zeros) != 0, ('flags', k, 'flag_masks_zeros'), msgs=msgs))
+                ret_val.append(Result(BaseCheck.HIGH, len(zeros) == 0, ('flags', k, 'flag_masks_zeros'), msgs=msgs))
 
             # 9) when both defined, boolean AND of each entry in flag_values with corresponding entry in flag_masks
             #    should equal the flags_value entry
