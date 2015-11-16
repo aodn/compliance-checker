@@ -729,10 +729,12 @@ class TestIMOS(unittest.TestCase):
         ret_val = self.imos.check_quality_control_variable_standard_name(self.test_variable_dataset)
 
         self.assertIsNotNone(ret_val)
-        self.assertGreater(len(ret_val), 0)
+        self.assertEqual(len(ret_val), 4)
 
         self.assertTrue(ret_val[0].value)
-        self.assertFalse(ret_val[1].value)
+        self.assertTrue(ret_val[1].value)
+        self.assertFalse(ret_val[2].value)
+        self.assertTrue(ret_val[3].value)
 
     def test_check_geospatial_lat_units(self):
         ret_val = self.imos.check_geospatial_lat_units(self.good_dataset)

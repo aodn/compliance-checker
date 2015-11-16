@@ -1395,16 +1395,20 @@ class IMOSCheck(BaseNCCheck):
         ret_val = []
 
         for qc_variable in self._quality_control_variables:
-            for data_variable in self._data_variables:
+            for variable in ds.dataset.variables.values():
                 ancillary_variables = find_ancillary_variables_by_variable(
-                                        ds.dataset, data_variable)
+                                        ds.dataset, variable)
                 if qc_variable in ancillary_variables:
-                    value = getattr(data_variable, 'standard_name', '') + ' ' + 'status_flag'
+                    value = getattr(variable, 'standard_name', '')
                     result_name = ('var', 'quality_variable', qc_variable.name,\
-                                    data_variable.name, 'check_standard_name')
-                    if getattr(qc_variable, 'standard_name', '') != value:
-                        reasoning = ["Standard name is not correct"]
-                        result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                                    variable.name, 'check_standard_name')
+                    if value:
+                        value = value + ' ' + 'status_flag'
+                        if getattr(qc_variable, 'standard_name', '') != value:
+                            reasoning = ["Standard name should be '%s'." % value]
+                            result = Result(BaseCheck.HIGH, False, result_name, reasoning)
+                        else:
+                            result = Result(BaseCheck.HIGH, True, result_name, None)
                     else:
                         result = Result(BaseCheck.HIGH, True, result_name, None)
 
