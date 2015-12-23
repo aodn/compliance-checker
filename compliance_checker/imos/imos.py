@@ -324,7 +324,7 @@ class IMOSCheck(BaseNCCheck):
 
         # identify vertical vars
         vert_vars = [v for v in dataset.dataset.variables.itervalues() \
-                             if vertical_coordinate_type(v) is not None]
+                             if vertical_coordinate_type(dataset, v) is not None]
 
         vert_min = getattr(dataset.dataset, 'geospatial_vertical_min', None)
         vert_max = getattr(dataset.dataset, 'geospatial_vertical_max', None)
@@ -1049,7 +1049,7 @@ class IMOSCheck(BaseNCCheck):
         n_vertical_var = 0
 
         for name, var in dataset.dataset.variables.iteritems():
-            var_type = vertical_coordinate_type(var)
+            var_type = vertical_coordinate_type(dataset, var)
             if var_type is None:
                 # not a vertical variable
                 continue
