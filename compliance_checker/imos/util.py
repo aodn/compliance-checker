@@ -66,11 +66,12 @@ def is_numeric(variable_type):
 
     return False
 
-def vertical_coordinate_type(variable):
+def vertical_coordinate_type(dataset, variable):
     """Return None if the given variable does not appear to be a vertical
     coordinate. Otherwise return the likely type of the coordinate
     ('height', 'depth' or 'unknown'). A type is returned if the
-    variable meets any of the conditions:
+    variable is not listed as an ancillary variable and meets any 
+    of the conditions:
       * variable name includes 'depth' or 'height' (case-insensitive),
         but not 'quality_control'
       * standard_name is 'depth' or 'height'
@@ -78,6 +79,11 @@ def vertical_coordinate_type(variable):
       * axis is 'Z' (type is then 'unknown')
 
     """
+
+    ancillary_variables = find_ancillary_variables(dataset.dataset)
+    # skip ancillary variables
+    if variable in ancillary_variables:
+        return None
 
     name = getattr(variable, 'name', '')
 

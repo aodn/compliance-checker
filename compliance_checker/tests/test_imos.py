@@ -284,29 +284,29 @@ class TestIMOS(unittest.TestCase):
 
     def test_vertical_coordinate_type(self):
         var = MockVariable('TEMP')
-        self.assertIsNone(util.vertical_coordinate_type(var))
+        self.assertIsNone(util.vertical_coordinate_type(self.good_dataset, var))
         var = MockVariable('DEPTH_quality_control')
-        self.assertIsNone(util.vertical_coordinate_type(var))
+        self.assertIsNone(util.vertical_coordinate_type(self.good_dataset, var))
 
         var = MockVariable('NOMINAL_DEPTH')
-        self.assertEqual(util.vertical_coordinate_type(var), 'depth')
+        self.assertEqual(util.vertical_coordinate_type(self.good_dataset, var), 'depth')
         var = MockVariable('HEIGHT_ABOVE_SENSOR')
-        self.assertEqual(util.vertical_coordinate_type(var), 'height')
+        self.assertEqual(util.vertical_coordinate_type(self.good_dataset, var), 'height')
 
         var = MockVariable('NONAME', standard_name='time')
-        self.assertIsNone(util.vertical_coordinate_type(var))
+        self.assertIsNone(util.vertical_coordinate_type(self.good_dataset, var))
         var = MockVariable('NONAME', standard_name='height')
-        self.assertEqual(util.vertical_coordinate_type(var), 'height')
+        self.assertEqual(util.vertical_coordinate_type(self.good_dataset, var), 'height')
 
         var = MockVariable('NONAME', positive='negative')
-        self.assertIsNone(util.vertical_coordinate_type(var))
+        self.assertIsNone(util.vertical_coordinate_type(self.good_dataset, var))
         var = MockVariable('NONAME', positive='down')
-        self.assertEqual(util.vertical_coordinate_type(var), 'depth')
+        self.assertEqual(util.vertical_coordinate_type(self.good_dataset, var), 'depth')
 
         var = MockVariable('NONAME', axis='X')
-        self.assertIsNone(util.vertical_coordinate_type(var))
+        self.assertIsNone(util.vertical_coordinate_type(self.good_dataset, var))
         var = MockVariable('NONAME', axis='Z')
-        self.assertEqual(util.vertical_coordinate_type(var), 'unknown')
+        self.assertEqual(util.vertical_coordinate_type(self.good_dataset, var), 'unknown')
 
 
 
