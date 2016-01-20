@@ -641,8 +641,9 @@ class IMOSCheck(BaseNCCheck):
 
     def check_coordinate_variables(self, dataset):
         """
-        Check all coordinate variables to ensure it has numeric type (byte,
-        float and integer) and also check whether it is monotonic
+        Check all coordinate variables for
+            numeric type (byte, float and integer)
+            strictly monotonic values (increasing or decreasing)
         """
 
         space_time_checked = False
@@ -660,10 +661,10 @@ class IMOSCheck(BaseNCCheck):
             ret_val.append(result)
 
             result_name = ('var', var.name, 'check_monotonic')
-            passed = True
+            passed = is_monotonic(var.__array__())
             reasoning = None
 
-            if not is_monotonic(var.__array__()):
+            if not passed:
                 reasoning = ["Variable values are not monotonic"]
 
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)

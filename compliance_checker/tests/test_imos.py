@@ -571,13 +571,20 @@ class TestIMOS(unittest.TestCase):
 
     def test_check_coordinate_variables(self):
         self.imos.setup(self.good_dataset)
-
         self.assertEqual(len(self.imos._coordinate_variables), 1)
-
         ret_val = self.imos.check_coordinate_variables(self.good_dataset)
-
         for result in ret_val:
             self.assertTrue(result.value)
+
+        self.imos.setup(self.bad_dataset)
+        self.assertEqual(len(self.imos._coordinate_variables), 1)
+        ret_val = self.imos.check_coordinate_variables(self.bad_dataset)
+        for result in ret_val:
+            if 'check_monotonic' in result.name:
+                self.assertFalse(result.value)
+            else:
+                self.assertTrue(result.value)
+
 
     def test_check_time_variable(self):
         ret_val = self.imos.check_time_variable(self.good_dataset)
