@@ -28,10 +28,10 @@ OPERATOR_EMAIL = 8
 
 def is_monotonic(array):
     """
-    Check whether an array is monotonic
+    Check whether an array is strictly monotonic
     """
     diff = np.diff(array)
-    return np.all(diff <= 0) or np.all(diff >= 0)
+    return np.all(diff < 0) or np.all(diff > 0)
 
 def is_valid_email(email):
     """Email validation, checks for syntactically invalid email"""

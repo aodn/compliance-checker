@@ -571,13 +571,21 @@ class TestIMOS(unittest.TestCase):
 
     def test_check_coordinate_variables(self):
         self.imos.setup(self.good_dataset)
-
         self.assertEqual(len(self.imos._coordinate_variables), 1)
-
         ret_val = self.imos.check_coordinate_variables(self.good_dataset)
-
         for result in ret_val:
             self.assertTrue(result.value)
+
+        self.imos.setup(self.bad_dataset)
+        self.assertEqual(len(self.imos._coordinate_variables), 2)
+        ret_val = self.imos.check_coordinate_variables(self.bad_dataset)
+        self.assertEqual(len(ret_val), 5)
+        for result in ret_val:
+            if 'check_variable_type' in result.name:
+                self.assertTrue(result.value)
+            else:
+                self.assertFalse(result.value)
+
 
     def test_check_time_variable(self):
         ret_val = self.imos.check_time_variable(self.good_dataset)
