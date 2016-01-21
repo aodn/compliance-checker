@@ -1,8 +1,9 @@
 netcdf imos_bad_data {
 dimensions:
-	time = 10 ;
+	ticks = 10 ;
+        bobs = 4 ;
 variables:
-	float TIME(time) ;
+	float TIME(ticks) ;
 		TIME:long_name = 123L ;
 		TIME:calendar = "" ;
 		TIME:standard_name = "" ;
@@ -26,12 +27,14 @@ variables:
 		LONGITUDE:valid_min = "" ;
 		LONGITUDE:valid_max = "" ;
 		LONGITUDE:units = "" ;
-	double time(time) ;
-		time:standard_name = "" ;
-		time:valid_min = "" ;
-		time:valid_max = "" ;
-		time:calendar = "" ;
-		time:long_name = 123L ;
+	double ticks(ticks) ;
+		ticks:standard_name = "" ;
+		ticks:valid_min = "" ;
+		ticks:valid_max = "" ;
+		ticks:calendar = "" ;
+		ticks:long_name = 123L ;
+        float bobs(bobs) ;
+
 
 // global attributes:
 		:conventions = "" ;
@@ -75,5 +78,7 @@ data:
 
  LONGITUDE = 121 ;
 
- time = 21500.0, 21500.1, 21500.2, 21500.3, 21500.9, 21500.8, 21500.7, 21500.6, 21500.4, 21500.5 ;
+ ticks = 21500.0, 21500.1, 21500.2, 21500.3, 21500.9, 21500.8, 21500.7, 21500.6, 21500.4, 21500.5 ;
+
+ bobs = 1, 2, 2, 4 ;
 }

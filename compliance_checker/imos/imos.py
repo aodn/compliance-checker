@@ -644,9 +644,10 @@ class IMOSCheck(BaseNCCheck):
         Check all coordinate variables for
             numeric type (byte, float and integer)
             strictly monotonic values (increasing or decreasing)
+        Also check that at least one of them is a spatial or temporal coordinate variable.
         """
 
-        space_time_checked = False
+        space_time_passed = False
 
         ret_val = []
         for var in self._coordinate_variables:
@@ -670,19 +671,18 @@ class IMOSCheck(BaseNCCheck):
             result = Result(BaseCheck.HIGH, passed, result_name, reasoning)
             ret_val.append(result)
 
-            result_name = ('var', 'coordinate_variable', var.name, 'space_time_coordinate', 'check_variable_present')
-            passed = False
-            reasoning = None
-
             if str(var.name) in _possibleaxis \
                 or (hasattr(var, 'units') and (var.units in _possibleaxisunits or var.units.split(" ")[0]  in _possibleaxisunits)) \
                 or hasattr(var,'positive'):
-                space_time_checked = True
+                space_time_passed = True
 
+
+        result_name = ('var', 'coordinate_variable', 'space_time_coordinate_present')
+        reasoning = None
+        if not space_time_passed:
             reasoning = ["No space-time coordinate variable found"]
-
-            result = Result(BaseCheck.HIGH, space_time_checked, result_name, reasoning)
-            ret_val.append(result)
+        result = Result(BaseCheck.HIGH, space_time_passed, result_name, reasoning)
+        ret_val.append(result)
 
         return ret_val
 
