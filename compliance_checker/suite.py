@@ -599,11 +599,11 @@ class CheckSuite(object):
         Turns shorthand True/False/None checks into full scores (1, 1)/(0, 1)/(0, 0).
         Leaves full scores alone.
         """
-        if val is True:
-            return (1, 1)
-        elif val is False:
-            return (0, 1)
+        if isinstance(val, tuple):
+            return val
         elif val is None:
             return (0, 0)
-
-        return val
+        elif val:
+            return (1, 1)
+        else:
+            return (0, 1)
